@@ -1,5 +1,6 @@
 "use server";
 
+import { assertString } from "@/lib/validations/common";
 import { requireRole } from "@/lib/require-role";
 import { kitSchema } from "@/lib/validations/kit";
 import { prisma } from "@/lib/prisma";
@@ -59,6 +60,7 @@ export async function getKits(): Promise<SerializedKit[]> {
 }
 
 export async function getKit(id: string): Promise<SerializedKit | null> {
+    id = assertString(id);
     await requireRole("ADMIN", "SELLER");
     const kit = await prisma.kit.findUnique({
         where: { id, deletedAt: null },
@@ -89,6 +91,7 @@ export async function createKit(data: KitFormData) {
 }
 
 export async function updateKit(id: string, data: KitFormData) {
+    id = assertString(id);
     await requireRole("ADMIN", "SELLER");
     data = kitSchema.parse(data);
 
@@ -114,6 +117,7 @@ export async function updateKit(id: string, data: KitFormData) {
 }
 
 export async function deleteKit(id: string) {
+    id = assertString(id);
     await requireRole("ADMIN", "SELLER");
     await prisma.kit.update({
         where: { id },

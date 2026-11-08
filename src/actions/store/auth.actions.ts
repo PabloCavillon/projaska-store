@@ -1,14 +1,17 @@
 'use server'
 
+import { assertString } from "@/lib/validations/common";
 import { prisma } from "@/lib/prisma";
 import {
 	createStoreSession,
 	deleteStoreSession,
 	getStoreSession,
 } from "@/lib/store-auth";
-import { LoginFormData, RegisterFormData } from "@/lib/validations/store-auth";
+import { LoginFormData, RegisterFormData, loginSchema, registerSchema } from "@/lib/validations/store-auth";
 import { safeRedirect } from "@/lib/utils";
 import { compare, hash } from "bcryptjs";
+import { headers } from "next/headers";
+import { clearLoginFailures, clientIp, isLoginBlocked, LOCKOUT_MESSAGE, recordLoginFailure } from "@/lib/login-rate-limit";
 import { redirect } from "next/navigation"; // used by logoutStoreCustomer
 
 const SALT_ROUNDS = 12;
@@ -16,14 +19,22 @@ const SALT_ROUNDS = 12;
 export async function loginStoreCustomer(
 	data: LoginFormData,
 ): Promise<{ error: string } | { redirectTo: string }> {
+	const ip = clientIp(await headers());
+	if (await isLoginBlocked("store", ip)) return { error: LOCKOUT_MESSAGE };
+
+	const parsed = loginSchema.safeParse(data);
+	if (!parsed.success) return { error: "Email o contraseña incorrectos." };
+	data = parsed.data;
+
 	const customer = await prisma.storeCustomer.findUnique({
 		where: { email: data.email.toLowerCase().trim(), deletedAt: null },
 	});
 
-	if (!customer) return { error: "Email o contraseña incorrectos." };
-
-	const isPasswordValid = await compare(data.password, customer.passwordHash);
-	if (!isPasswordValid) return { error: "Email o contraseña incorrectos." };
+	if (!customer || !(await compare(data.password, customer.passwordHash))) {
+		await recordLoginFailure("store", ip);
+		return { error: "Email o contraseña incorrectos." };
+	}
+	await clearLoginFailures("store", ip);
 
 	await createStoreSession({
 		id: customer.id,
@@ -37,6 +48,10 @@ export async function loginStoreCustomer(
 export async function registerStoreCustomer(
 	data: RegisterFormData,
 ): Promise<{ error: string } | { redirectTo: string }> {
+	const parsed = registerSchema.safeParse(data);
+	if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Revisá los datos." };
+	data = parsed.data;
+
 	const existing = await prisma.storeCustomer.findUnique({
 		where: { email: data.email.toLowerCase() },
 	});
@@ -73,38 +88,6 @@ export async function logoutStoreCustomer(): Promise<void> {
 	redirect("/login");
 }
 
-export async function updateStoreCustomerProfile(data: {
-	name: string;
-	email?: string;
-	phone?: string;
-	address?: string;
-}): Promise<{ error?: string }> {
-	const session = await getStoreSession();
-	if (!session) return { error: "No autorizado." };
-
-	await prisma.$transaction(async (tx) => {
-		const updated = await tx.storeCustomer.update({
-			where: { id: session.id, deletedAt: null },
-			data,
-			select: { customerId: true },
-		});
-
-		if (updated.customerId) {
-			await tx.customer.update({
-				where: { id: updated.customerId },
-				data: {
-					name: data.name,
-					email: data.email,
-					phone: data.phone,
-					address: data.address,
-				},
-			});
-		}
-	});
-
-	return {};
-}
-
 const ACTIVE_ORDER_STATUSES = ["PENDING", "PAYMENT_REGISTERED", "CONFIRMED", "SHIPPED"] as const;
 
 /**
@@ -113,6 +96,7 @@ const ACTIVE_ORDER_STATUSES = ["PENDING", "PAYMENT_REGISTERED", "CONFIRMED", "SH
  * volver a registrarse.
  */
 export async function deleteStoreAccount(password: string): Promise<{ error: string } | { code: string }> {
+	password = assertString(password, 200);
 	const session = await getStoreSession();
 	if (!session) return { error: "Tu sesión expiró. Ingresá de nuevo." };
 

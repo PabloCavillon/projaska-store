@@ -1,5 +1,6 @@
 "use server";
 
+import { assertString } from "@/lib/validations/common";
 import { prisma } from "@/lib/prisma";
 import { getPriceConfig } from "@/actions/config";
 import { calcPriceArs, type PriceInfo } from "@/lib/price-utils";
@@ -23,6 +24,7 @@ export type StoreKit = {
 };
 
 export async function getStoreKit(id: string): Promise<StoreKit | null> {
+    id = assertString(id);
     const [kit, config] = await Promise.all([
         prisma.kit.findUnique({
             where: { id, deletedAt: null, isActive: true },

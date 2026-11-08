@@ -28,7 +28,9 @@ export default function LoginForm() {
 			});
 
 			if (result?.error) {
-				setError("Usuario o contraseña incorrectos");
+				setError(result.code === "rate_limited"
+					? "Demasiados intentos fallidos. Probá de nuevo en 15 minutos."
+					: "Usuario o contraseña incorrectos");
 				setIsLoading(false);
 				return;
 			}

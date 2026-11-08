@@ -1,5 +1,6 @@
 "use server";
 
+import { assertString } from "@/lib/validations/common";
 import { prisma } from "@/lib/prisma";
 import { getStoreSession } from "@/lib/store-auth";
 import { getStoreProduct } from "@/actions/store/products.actions";
@@ -15,6 +16,7 @@ export type ReorderResult =
  * shortcut: el pedido no guarda si se compró por caja, así que todo vuelve como unidades; guardar `unit` en StoreOrderItem si hace falta.
  */
 export async function getReorderItems(code: string): Promise<ReorderResult> {
+    code = assertString(code);
     const session = await getStoreSession();
     if (!session) return { error: "Ingresá para repetir un pedido." };
 

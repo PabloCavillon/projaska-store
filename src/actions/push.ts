@@ -1,5 +1,6 @@
 "use server";
 
+import { assertString } from "@/lib/validations/common";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -31,6 +32,7 @@ export async function subscribeToPush(subscription: {
 }
 
 export async function unsubscribeFromPush(endpoint: string) {
+    endpoint = assertString(endpoint, 2000);
     const session = await auth();
     if (!session?.user?.id) throw new Error("Unauthorized");
 

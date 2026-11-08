@@ -1,5 +1,6 @@
 "use server";
 
+import { assertString } from "@/lib/validations/common";
 import { prisma } from "@/lib/prisma";
 import { getPriceConfig } from "@/actions/config";
 import { calcPriceArs, priceOf, type PriceInfo, type SaleUnit } from "@/lib/price-utils";
@@ -64,6 +65,7 @@ function mapProduct(p: {
 }
 
 export async function getStoreProduct(id: string): Promise<StoreProduct | null> {
+    id = assertString(id);
     const [product, config] = await Promise.all([
         prisma.product.findUnique({ where: { id, deletedAt: null, showInStore: true }, select: productSelect }),
         getPriceConfig(),

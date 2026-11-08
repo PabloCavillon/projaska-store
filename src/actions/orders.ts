@@ -1,5 +1,6 @@
 "use server";
 
+import { assertString } from "@/lib/validations/common";
 import { requireRole } from "@/lib/require-role";
 import { orderSchema } from "@/lib/validations/order";
 import { auth } from "@/auth";
@@ -49,6 +50,7 @@ export async function getOrders(): Promise<SerializedOrder[]> {
 }
 
 export async function getOrder(id: string): Promise<SerializedOrder | null> {
+	id = assertString(id);
 	const session = await auth();
 	if (!session?.user?.id) throw new Error("No autorizado");
 
@@ -97,6 +99,8 @@ export async function createOrder(data: OrderFormData) {
 }
 
 export async function updateOrderStatus(id: string, status: OrderStatus) {
+	id = assertString(id);
+	status = assertString(status) as typeof status;
 	const session = await requireRole("ADMIN", "SELLER", "WAREHOUSE");
 
 	const order = await prisma.order.findUnique({

@@ -369,3 +369,14 @@ model RevocationRequest {
   reason    String?
   createdAt DateTime @default(now())
 }
+
+// ─── INTENTOS DE LOGIN FALLIDOS (bloqueo por IP) ──────────────────────────────
+
+model LoginAttempt {
+  id        String   @id @default(uuid())
+  ip        String
+  scope     String // "store" | "admin"
+  createdAt DateTime @default(now())
+
+  @@index([ip, scope, createdAt])
+}

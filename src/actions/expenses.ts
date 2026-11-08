@@ -1,5 +1,6 @@
 "use server";
 
+import { assertString } from "@/lib/validations/common";
 import { requireRole } from "@/lib/require-role";
 import { expenseSchema, recurringExpenseSchema } from "@/lib/validations/expense";
 import { auth } from "@/auth";
@@ -53,6 +54,7 @@ export async function createExpense(data: ExpenseFormData) {
 }
 
 export async function deleteExpense(id: string) {
+    id = assertString(id);
     const session = await auth();
     if (!session?.user?.id) throw new Error("Unauthorized");
     if (session.user.role !== "ADMIN") throw new Error("Forbidden");
@@ -145,6 +147,7 @@ export async function createRecurringExpense(data: {
 }
 
 export async function deleteRecurringExpense(id: string) {
+    id = assertString(id);
     const session = await auth();
     if (!session?.user?.id) throw new Error("Unauthorized");
     if (session.user.role !== "ADMIN") throw new Error("Forbidden");
@@ -153,6 +156,7 @@ export async function deleteRecurringExpense(id: string) {
 }
 
 export async function registerRecurringExpense(id: string) {
+    id = assertString(id);
     const session = await requireRole("ADMIN", "SELLER");
 
     const recurring = await prisma.recurringExpense.findUniqueOrThrow({ where: { id } });

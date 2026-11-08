@@ -1,5 +1,6 @@
 "use server";
 
+import { assertString } from "@/lib/validations/common";
 import { requireRole } from "@/lib/require-role";
 import { prisma } from "@/lib/prisma";
 import { getPriceConfig } from "@/actions/config";
@@ -254,6 +255,7 @@ export async function getAdminStoreOrders(): Promise<AdminStoreOrder[]> {
 }
 
 export async function getAdminStoreOrder(id: string): Promise<AdminStoreOrder | null> {
+    id = assertString(id);
     const session = await auth();
     if (!session?.user?.id) throw new Error("No autorizado");
 
@@ -274,6 +276,8 @@ export async function getAdminStoreOrder(id: string): Promise<AdminStoreOrder | 
 }
 
 export async function updateStoreOrderStatusAdmin(id: string, status: StoreOrderStatus) {
+    id = assertString(id);
+    status = assertString(status) as typeof status;
     const session = await requireRole("ADMIN", "SELLER", "WAREHOUSE");
 
     const order = await prisma.storeOrder.findUnique({
@@ -358,6 +362,7 @@ export async function getMyStoreOrders(): Promise<SerializedStoreOrder[]> {
 }
 
 export async function getMyStoreOrder(code: string): Promise<SerializedStoreOrder | null> {
+    code = assertString(code);
     const session = await getStoreSession();
     if (!session) return null;
 

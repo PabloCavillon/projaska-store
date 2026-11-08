@@ -1,5 +1,6 @@
 "use server";
 
+import { assertString } from "@/lib/validations/common";
 import { requireRole } from "@/lib/require-role";
 import { customerSchema } from "@/lib/validations/customer";
 import { auth } from "@/auth";
@@ -29,6 +30,7 @@ export const getCustomers = async (): Promise<SerializedCustomer[]> => {
 };
 
 export const getCustomer = async (id: string): Promise<SerializedCustomer> => {
+	id = assertString(id);
 	const session = await auth();
 	if (!session?.user?.id) throw new Error("No autorizado");
 
@@ -64,6 +66,7 @@ export const updateCustomer = async (
 		isGuild?: boolean;
 	},
 ) => {
+	id = assertString(id);
 	await requireRole("ADMIN", "SELLER");
 	data = customerSchema.parse(data);
 
@@ -86,6 +89,7 @@ export const updateCustomer = async (
 };
 
 export const deleteCustomer = async (id: string) => {
+	id = assertString(id);
 	await requireRole("ADMIN", "SELLER");
 	await prisma.customer.update({
 		where: { id },

@@ -1,5 +1,6 @@
 "use server";
 
+import { assertString } from "@/lib/validations/common";
 import { requireRole } from "@/lib/require-role";
 import { productSchema } from "@/lib/validations/product";
 import { auth } from "@/auth";
@@ -43,6 +44,7 @@ export async function getProducts(): Promise<SerializedProduct[]> {
 export async function getProduct(
 	id: string,
 ): Promise<SerializedProduct | null> {
+	id = assertString(id);
 	const session = await auth();
 	if (!session?.user?.id) throw new Error("No autorizado");
 
@@ -91,6 +93,7 @@ export const updateProduct = async (
 		showInStore?: boolean;
 	},
 ) => {
+	id = assertString(id);
 	await requireRole("ADMIN", "SELLER");
 	data = productSchema.parse(data);
 	await prisma.product.update({
@@ -101,6 +104,7 @@ export const updateProduct = async (
 };
 
 export async function deleteProduct(id: string) {
+	id = assertString(id);
 	await requireRole("ADMIN", "SELLER");
 	await prisma.product.update({
 		where: { id },

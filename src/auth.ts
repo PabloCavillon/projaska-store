@@ -1,8 +1,13 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "./auth.config";
+import { clearLoginFailures, clientIp, isLoginBlocked, recordLoginFailure } from "@/lib/login-rate-limit";
+
+class LoginRateLimited extends CredentialsSignin {
+	code = "rate_limited";
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
 	...authConfig,
@@ -12,23 +17,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 				username: { label: "Username" },
 				password: { label: "Password", type: "password" },
 			},
-			async authorize(credentials) {
-				if (!credentials?.username || !credentials?.password)
+			async authorize(credentials, request) {
+				const ip = clientIp(request.headers);
+				if (await isLoginBlocked("admin", ip)) throw new LoginRateLimited();
+
+				if (typeof credentials?.username !== "string" || typeof credentials?.password !== "string")
 					return null;
 
 				// Los usuarios dados de baja (deletedAt) no pueden ingresar
 				const user = await prisma.user.findFirst({
-					where: { username: credentials.username as string, deletedAt: null },
+					where: { username: credentials.username, deletedAt: null },
 				});
 
-				if (!user) return null;
-
-				const isPasswordValid = await compare(
-					credentials.password as string,
-					user.password,
-				);
-
-				if (!isPasswordValid) return null;
+				if (!user || !(await compare(credentials.password, user.password))) {
+					await recordLoginFailure("admin", ip);
+					return null;
+				}
+				await clearLoginFailures("admin", ip);
 
 				return { id: user.id, name: user.username, role: user.role };
 			},

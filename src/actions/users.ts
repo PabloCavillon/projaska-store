@@ -1,5 +1,6 @@
 "use server";
 
+import { assertString } from "@/lib/validations/common";
 import { hash } from "bcryptjs";
 import { revalidatePath } from "next/cache";
 
@@ -30,6 +31,7 @@ export async function getUsers(): Promise<SerializedUser[]> {
 }
 
 export async function getUser(id: string): Promise<SerializedUser | null> {
+	id = assertString(id);
 	await requireAdmin();
 	const user = await prisma.user.findUnique({
 		where: { id, deletedAt: null },
@@ -59,6 +61,7 @@ export async function createUser(data: CreateUserFormData) {
 }
 
 export async function updateUser(id: string, data: UserFormData) {
+	id = assertString(id);
 	await requireAdmin();
 	data = userSchema.parse(data);
 	const updateData: any = {
@@ -83,6 +86,7 @@ export async function updateUser(id: string, data: UserFormData) {
 }
 
 export async function deleteUser(id: string) {
+	id = assertString(id);
 	await requireAdmin();
 	await prisma.user.update({
 		where: { id },
