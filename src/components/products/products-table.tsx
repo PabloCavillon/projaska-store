@@ -3,44 +3,88 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { deleteProduct } from "@/actions/products";
+import { setProductShowInStore } from "@/actions/products";
 import { cn } from "@/lib/utils";
 import { SerializedProduct } from "@/types/product";
-import { Search, Edit2, Trash2, Loader2 } from "lucide-react";
 import { SearchInput } from "../ui/search-input";
 
 interface Props {
     products: SerializedProduct[];
 }
 
+const fmtPrice = (n: number) => `$${Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
+
+function StockBadge({ stock, className }: { stock: number; className?: string }) {
+    return (
+        <span className={cn(
+            "inline-flex rounded-full text-xs font-bold uppercase tracking-widest border",
+            stock >= 5 ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
+                stock > 0 ? "bg-amber-50 text-amber-700 border-amber-100" :
+                    "bg-red-50 text-red-700 border-red-100",
+            className,
+        )}>
+            {stock} {stock > 1 ? 'disponibles' : 'disponible'}
+        </span>
+    );
+}
+
+/** Switch "Visible en tienda". Frena el click para que no abra la fila. */
+function StoreSwitch({ product, onToggle, pending }: { product: SerializedProduct; onToggle: () => void; pending: boolean }) {
+    const on = product.showInStore;
+    return (
+        <span className="inline-flex items-center gap-2">
+            <button
+                type="button"
+                role="switch"
+                aria-checked={on}
+                aria-label={`Visible en tienda: ${product.name}`}
+                disabled={pending}
+                onClick={(e) => { e.stopPropagation(); onToggle(); }}
+                className={cn(
+                    "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900",
+                    on ? "bg-zinc-900" : "bg-zinc-200",
+                )}
+            >
+                <span className={cn("inline-block h-4 w-4 rounded-full bg-white shadow transition-transform", on ? "translate-x-6" : "translate-x-1")} />
+            </button>
+            <span className={cn("text-xs font-bold uppercase tracking-widest", on ? "text-zinc-700" : "text-zinc-400")}>
+                {on ? "Visible" : "Oculto"}
+            </span>
+        </span>
+    );
+}
+
 export default function ProductsTable({ products: initialProducts }: Props) {
     const router = useRouter();
     const [products, setProducts] = useState<SerializedProduct[]>(initialProducts);
     const [search, setSearch] = useState("");
-    const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
+    const [pendingId, setPendingId] = useState<string | null>(null);
+    const [toggleError, setToggleError] = useState<string | null>(null);
 
     const filtered = products.filter(p => {
-        const searchTerm = search.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const searchTerm = search.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
         return [p.name, p.sku, p.model ?? "", p.category].some(field => {
             if (!field) return false;
-            const normalizedField = field.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const normalizedField = field.toString().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
             return normalizedField.includes(searchTerm);
         });
     });
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.")) return;
+    const editHref = (id: string) => `/admin/products/${id}/edit`;
 
-        setIsDeletingId(id);
+    const handleToggle = async (product: SerializedProduct) => {
+        const next = !product.showInStore;
+        setToggleError(null);
+        setPendingId(product.id);
+        setProducts(prev => prev.map(p => p.id === product.id ? { ...p, showInStore: next } : p));
         try {
-            await deleteProduct(id);
-            setProducts(prev => prev.filter(p => p.id !== id));
-            router.refresh();
-        } catch (error) {
-            console.error("Error deleting product", error);
+            await setProductShowInStore(product.id, next);
+        } catch {
+            setProducts(prev => prev.map(p => p.id === product.id ? { ...p, showInStore: !next } : p));
+            setToggleError(`No se pudo cambiar la visibilidad de "${product.name}". Intentá de nuevo.`);
         } finally {
-            setIsDeletingId(null);
+            setPendingId(null);
         }
     };
 
@@ -49,6 +93,12 @@ export default function ProductsTable({ products: initialProducts }: Props) {
     return (
         <div className="flex flex-col">
             <SearchInput value={search} onChange={setSearch} placeholder="Buscar productos..." />
+
+            {toggleError && (
+                <div role="alert" className="mx-4 md:mx-6 mb-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {toggleError}
+                </div>
+            )}
 
             {filtered.length === 0 ? (
                 <div className="py-20 text-center text-zinc-400 italic font-light">
@@ -67,66 +117,42 @@ export default function ProductsTable({ products: initialProducts }: Props) {
                                     <th className={thClasses}>Precio</th>
                                     <th className={thClasses}>Stock</th>
                                     <th className={thClasses}>Tienda</th>
-                                    <th className="px-6 py-4"></th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-50">
                                 {filtered.map((product) => (
-                                    <tr key={product.id} className="group hover:bg-zinc-50/50 transition-colors">
+                                    <tr
+                                        key={product.id}
+                                        onClick={() => router.push(editHref(product.id))}
+                                        className="hover:bg-zinc-50 transition-colors cursor-pointer"
+                                    >
                                         <td className="px-6 py-4">
                                             <span className="font-mono text-md text-zinc-400 uppercase tracking-tighter bg-zinc-100/50 px-2 py-1 rounded">
                                                 #{product.sku}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 font-bold text-base text-zinc-900">
-                                            {product.name}
+                                        <td className="px-6 py-4">
+                                            {/* Link real: teclado, lectores de pantalla y "abrir en pestaña nueva" */}
+                                            <Link
+                                                href={editHref(product.id)}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="font-bold text-base text-zinc-900 hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 rounded"
+                                            >
+                                                {product.name}
+                                            </Link>
+                                            {product.model && <span className="block font-mono text-xs text-zinc-500 mt-1">Modelo: {product.model}</span>}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-zinc-500">
                                             {product.category}
                                         </td>
                                         <td className="px-6 py-4 font-bold text-base text-zinc-900">
-                                            ${Number(product.price).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                                            {fmtPrice(product.price)}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={cn(
-                                                "inline-flex px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border",
-                                                product.stock >= 5 ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
-                                                    product.stock > 0 ? "bg-amber-50 text-amber-700 border-amber-100" :
-                                                        "bg-red-50 text-red-700 border-red-100"
-                                            )}>
-                                                {product.stock} {product.stock > 1 ? 'disponibles' : 'disponible'}
-                                            </span>
+                                            <StockBadge stock={product.stock} className="px-3 py-1" />
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={cn(
-                                                "inline-flex px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest border",
-                                                product.showInStore
-                                                    ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                                    : "bg-zinc-100 text-zinc-400 border-zinc-200"
-                                            )}>
-                                                {product.showInStore ? "Visible" : "Oculto"}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                                <Link
-                                                    href={`/admin/products/${product.id}/edit`}
-                                                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-white border border-transparent hover:border-zinc-200 transition-all shadow-none hover:shadow-sm"
-                                                >
-                                                    <Edit2 className="w-4 h-4" />
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDelete(product.id)}
-                                                    disabled={isDeletingId === product.id}
-                                                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100 transition-all cursor-pointer"
-                                                >
-                                                    {isDeletingId === product.id ? (
-                                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                                    ) : (
-                                                        <Trash2 className="w-4 h-4" />
-                                                    )}
-                                                </button>
-                                            </div>
+                                            <StoreSwitch product={product} pending={pendingId === product.id} onToggle={() => handleToggle(product)} />
                                         </td>
                                     </tr>
                                 ))}
@@ -137,57 +163,29 @@ export default function ProductsTable({ products: initialProducts }: Props) {
                     {/* ── MOBILE: cards ── */}
                     <div className="flex flex-col divide-y divide-zinc-100 md:hidden">
                         {filtered.map((product) => (
-                            <div key={product.id} className="flex items-start justify-between px-4 py-4 hover:bg-zinc-50/50 transition-colors">
-                                <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                                    <span className="font-mono text-xs text-zinc-400 uppercase tracking-tighter bg-zinc-100/50 px-2 py-0.5 rounded w-fit">
-                                        #{product.sku}
-                                    </span>
-                                    <p className="font-bold text-base text-zinc-900 leading-snug">
-                                        {product.name}
-                                    </p>
-                                    <p className="text-sm text-zinc-400">{product.category}</p>
-                                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                        <span className="font-bold text-base text-zinc-900">
-                                            ${Number(product.price).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-                                        </span>
-                                        <span className={cn(
-                                            "inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-widest border",
-                                            product.stock >= 5 ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
-                                                product.stock > 0 ? "bg-amber-50 text-amber-700 border-amber-100" :
-                                                    "bg-red-50 text-red-700 border-red-100"
-                                        )}>
-                                            {product.stock} {product.stock > 1 ? 'disponibles' : 'disponible'}
-                                        </span>
-                                        <span className={cn(
-                                            "inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-widest border",
-                                            product.showInStore
-                                                ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                                : "bg-zinc-100 text-zinc-400 border-zinc-200"
-                                        )}>
-                                            {product.showInStore ? "Visible" : "Oculto"}
-                                        </span>
-                                    </div>
+                            <div
+                                key={product.id}
+                                onClick={() => router.push(editHref(product.id))}
+                                className="flex flex-col gap-1.5 px-4 py-4 hover:bg-zinc-50 transition-colors cursor-pointer"
+                            >
+                                <span className="font-mono text-xs text-zinc-400 uppercase tracking-tighter bg-zinc-100/50 px-2 py-0.5 rounded w-fit">
+                                    #{product.sku}
+                                </span>
+                                <Link
+                                    href={editHref(product.id)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="font-bold text-base text-zinc-900 leading-snug focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 rounded"
+                                >
+                                    {product.name}
+                                </Link>
+                                {product.model && <p className="font-mono text-xs text-zinc-500">Modelo: {product.model}</p>}
+                                <p className="text-sm text-zinc-400">{product.category}</p>
+                                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                    <span className="font-bold text-base text-zinc-900">{fmtPrice(product.price)}</span>
+                                    <StockBadge stock={product.stock} className="px-2.5 py-0.5" />
                                 </div>
-
-                                {/* Acciones mobile — siempre visibles */}
-                                <div className="flex items-center gap-1 ml-3 shrink-0">
-                                    <Link
-                                        href={`/admin/products/${product.id}/edit`}
-                                        className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-white border border-transparent hover:border-zinc-200 transition-all"
-                                    >
-                                        <Edit2 className="w-4 h-4" />
-                                    </Link>
-                                    <button
-                                        onClick={() => handleDelete(product.id)}
-                                        disabled={isDeletingId === product.id}
-                                        className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100 transition-all"
-                                    >
-                                        {isDeletingId === product.id ? (
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                        ) : (
-                                            <Trash2 className="w-4 h-4" />
-                                        )}
-                                    </button>
+                                <div className="mt-2">
+                                    <StoreSwitch product={product} pending={pendingId === product.id} onToggle={() => handleToggle(product)} />
                                 </div>
                             </div>
                         ))}

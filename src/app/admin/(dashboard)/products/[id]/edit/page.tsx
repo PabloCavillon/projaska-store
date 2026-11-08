@@ -1,6 +1,7 @@
 import { getProduct } from "@/actions/products";
 import { getPriceConfig } from "@/actions/config";
 import { ProductForm } from "@/components/products/product-form";
+import { DeleteProductButton } from "@/components/products/delete-product-button";
 import { notFound } from "next/navigation";
 import { ChevronLeft, Edit3 } from "lucide-react";
 import Link from "next/link";
@@ -46,6 +47,14 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
             {/* Contenedor form */}
             <section className="bg-white p-6 md:p-12 rounded-3xl border border-zinc-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                 <ProductForm product={product} config={config} />
+            </section>
+
+            <section aria-labelledby="zona-peligro" className="p-6 md:p-8 rounded-3xl border border-red-100 bg-red-50/30 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 id="zona-peligro" className="text-sm font-black text-red-700 uppercase tracking-widest">Eliminar producto</h2>
+                    <p className="text-sm text-zinc-500 mt-1">Deja de aparecer en el inventario y en la tienda. Los pedidos anteriores se conservan.</p>
+                </div>
+                <DeleteProductButton id={product.id} name={product.name} />
             </section>
         </div>
     );

@@ -115,3 +115,11 @@ export async function deleteProduct(id: string) {
 	});
 	revalidatePath("/products");
 }
+
+export async function setProductShowInStore(id: string, showInStore: boolean) {
+	id = assertString(id);
+	if (typeof showInStore !== "boolean") throw new Error("Parámetro inválido");
+	await requireRole("ADMIN", "SELLER");
+	await prisma.product.update({ where: { id, deletedAt: null }, data: { showInStore } });
+	revalidatePath("/admin/products");
+}
