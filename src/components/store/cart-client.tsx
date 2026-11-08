@@ -47,7 +47,7 @@ export function CartClient({ config, isGuild, loggedIn }: CartClientProps) {
                     <p className="osd text-sm text-osd-dim">Carrito 00</p>
                     <p className="text-2xl">Tu carrito está vacío</p>
                     <p className="text-sm text-osd-dim -mt-2">Explorá el catálogo y agregá productos o kits.</p>
-                    <Link href="/" className="vf-btn vf-btn-primary">Ver catálogo</Link>
+                    <Link href="/catalog" className="vf-btn vf-btn-primary">Ver catálogo</Link>
                 </div>
             </div>
         );
@@ -138,7 +138,7 @@ export function CartClient({ config, isGuild, loggedIn }: CartClientProps) {
                 </div>
 
                 <div className="flex flex-col-reverse sm:flex-row gap-3 sm:items-center sm:justify-between">
-                    <Link href="/" className="osd text-xs text-osd-dim hover:text-osd inline-flex items-center gap-2 min-h-11"><ArrowLeft size={14} aria-hidden="true" /> Seguir comprando</Link>
+                    <Link href="/catalog" className="osd text-xs text-osd-dim hover:text-osd inline-flex items-center gap-2 min-h-11"><ArrowLeft size={14} aria-hidden="true" /> Seguir comprando</Link>
                     <Link href="/checkout" className="vf-btn vf-btn-primary sm:px-10">
                         Continuar <ArrowRight size={16} aria-hidden="true" />
                     </Link>

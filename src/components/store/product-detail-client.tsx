@@ -43,7 +43,7 @@ export function ProductDetailClient({ product }: { product: StoreProduct }) {
     return (
         <div className="flex flex-col gap-7">
             <button
-                onClick={() => (window.history.length > 1 ? router.back() : router.push("/"))}
+                onClick={() => (window.history.length > 1 ? router.back() : router.push("/catalog"))}
                 className="osd text-xs text-osd-dim hover:text-osd cursor-pointer w-fit inline-flex items-center gap-2"
             >
                 <ArrowLeft size={14} aria-hidden="true" /> Volver

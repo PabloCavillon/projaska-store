@@ -1,17 +1,26 @@
 import type { StoreProduct } from "@/actions/store/products.actions";
 import type { StoreKit } from "@/actions/store/kits.actions";
 import { AddToCartControls } from "@/components/store/add-to-cart-controls";
-import { Catalog } from "@/components/store/catalog";
+import { ProductCard } from "@/components/store/product-card";
 import { fmtArs } from "@/lib/utils";
 import { ZoomBar } from "@/components/store/vf-parts";
 import { whatsappUrl } from "@/lib/store-contact";
-import { Boxes, ArrowDown, ArrowRight } from "lucide-react";
+import { Boxes, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-export function StoreHome({ products, kits, dollarRate }: { products: StoreProduct[]; kits: StoreKit[]; dollarRate: number }) {
+interface StoreHomeProps {
+    products: StoreProduct[];
+    kits: StoreKit[];
+    bestSellers: StoreProduct[];
+    /** false = todavía no hay ventas y se muestran productos con stock */
+    bestSellersAreSales: boolean;
+    dollarRate: number;
+}
+
+export function StoreHome({ products, kits, bestSellers, bestSellersAreSales, dollarRate }: StoreHomeProps) {
     const featured = kits[0];
 
     return (
@@ -41,9 +50,9 @@ export function StoreHome({ products, kits, dollarRate }: { products: StoreProdu
                             de la compra, e instalación del mismo equipo que te lo vende. Precios en pesos, con stock real.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3">
-                            <a href="#catalogo" className="vf-btn vf-btn-primary">
-                                Ver catálogo <ArrowDown size={16} aria-hidden="true" />
-                            </a>
+                            <Link href="/catalog" className="vf-btn vf-btn-primary">
+                                Ver catálogo <ArrowRight size={16} aria-hidden="true" />
+                            </Link>
                             <a
                                 href={whatsappUrl("Hola! Quería asesoramiento para elegir equipos.")}
                                 target="_blank"
@@ -127,8 +136,26 @@ export function StoreHome({ products, kits, dollarRate }: { products: StoreProdu
                 </div>
             </section>
 
-            <div id="catalogo" className="scroll-mt-16 space-y-10 sm:space-y-14">
-                <Catalog products={products} kits={kits} />
+            {bestSellers.length > 0 && (
+                <section aria-labelledby="mas-vendidos" className="space-y-5">
+                    <div className="flex items-baseline justify-between gap-4 border-b border-hud-line pb-3">
+                        <h2 id="mas-vendidos" className="osd text-2xl sm:text-3xl">
+                            {bestSellersAreSales ? "Más vendidos" : "Destacados"}
+                        </h2>
+                        <Link href="/catalog" className="osd text-xs text-osd-dim hover:text-osd inline-flex items-center gap-2 min-h-11 shrink-0">
+                            Catálogo completo <ArrowRight size={14} aria-hidden="true" />
+                        </Link>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+                        {bestSellers.map((product) => <ProductCard key={product.id} product={product} />)}
+                    </div>
+                </section>
+            )}
+
+            <div className="flex justify-center">
+                <Link href="/catalog" className="vf-btn vf-btn-ghost">
+                    Ver los {products.length} productos y {kits.length} kits <ArrowRight size={16} aria-hidden="true" />
+                </Link>
             </div>
         </div>
     );

@@ -23,7 +23,7 @@ export default function StoreError({
             {error.digest && <p className="osd text-xs text-osd-dim">ref {error.digest}</p>}
             <div className="flex flex-col sm:flex-row gap-3">
                 <button onClick={reset} className="vf-btn vf-btn-primary">Intentar de nuevo</button>
-                <Link href="/" className="vf-btn vf-btn-ghost">Volver al catálogo</Link>
+                <Link href="/catalog" className="vf-btn vf-btn-ghost">Volver al catálogo</Link>
             </div>
         </div>
     );

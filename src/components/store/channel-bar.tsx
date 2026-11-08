@@ -81,6 +81,16 @@ export function ChannelBar({ channels, query, onQuery, resultCount }: ChannelBar
         }
     }, [active]);
 
+    // Desplazamiento suave a la sección (respeta scroll-mt y "reducir movimiento"); el #hash queda en la URL
+    const goTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        target.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+        history.replaceState(null, "", `#${id}`);
+    };
+
     const pad = (n: number) => String(n).padStart(2, "0");
 
     return (
@@ -104,6 +114,7 @@ export function ChannelBar({ channels, query, onQuery, resultCount }: ChannelBar
                         <li key={c.id} className="shrink-0">
                             <a
                                 href={`#${c.id}`}
+                                onClick={(e) => goTo(e, c.id)}
                                 aria-current={i === active ? "true" : undefined}
                                 className={cn(
                                     "vf-frame vf-focus osd text-xs px-2.5 min-h-11 md:min-h-8 flex items-center",

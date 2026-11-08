@@ -61,7 +61,7 @@ export function QtyStepper({ quantity, onChange, max, size = "sm", label, classN
 /** Profundidad de la vista: W = catálogo (panorama), T = ficha de producto (detalle). */
 export function zoomOf(pathname: string): number {
     if (pathname.startsWith("/products/") || pathname.startsWith("/kits/")) return 0.92;
-    if (pathname === "/") return 0.08;
+    if (pathname === "/" || pathname.startsWith("/catalog")) return 0.08;
     return 0.5;
 }
 

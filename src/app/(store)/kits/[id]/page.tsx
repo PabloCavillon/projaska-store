@@ -64,7 +64,7 @@ export default async function KitDetailPage({ params }: { params: Promise<{ id: 
                 </div>
 
                 <div className="flex flex-col gap-7">
-                    <Link href="/#ch-kits" className="osd text-xs text-osd-dim hover:text-osd w-fit inline-flex items-center gap-2">
+                    <Link href="/catalog#ch-kits" className="osd text-xs text-osd-dim hover:text-osd w-fit inline-flex items-center gap-2">
                         <ArrowLeft size={14} aria-hidden="true" /> Volver a kits
                     </Link>
 

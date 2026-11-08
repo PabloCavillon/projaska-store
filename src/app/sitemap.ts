@@ -31,6 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [
         { url: BASE_URL, changeFrequency: "daily", priority: 1 },
+        { url: `${BASE_URL}/catalog`, changeFrequency: "daily", priority: 0.9 },
         ...productUrls,
         ...kitUrls,
     ];

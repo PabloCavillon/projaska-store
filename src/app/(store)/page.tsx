@@ -1,9 +1,9 @@
-import { getStoreProducts } from "@/actions/store/products.actions";
+import { getBestSellerIds, getStoreProducts } from "@/actions/store/products.actions";
 import { getStoreKits } from "@/actions/store/kits.actions";
 import { StoreHome } from "@/components/store/store-home";
 
 export const metadata = {
-    title: "Catálogo de Productos",
+    title: "Tecnología y seguridad",
     description: "Explorá nuestro catálogo de tecnología y seguridad: cámaras, alarmas, cerraduras inteligentes, domótica y accesorios. Precios en pesos argentinos.",
     openGraph: {
         title: "Catálogo | Projaska",
@@ -24,10 +24,16 @@ const orgJsonLd = {
 };
 
 export default async function StorePage() {
-    const [{ products, config }, { kits }] = await Promise.all([
+    const [{ products, config }, { kits }, bestSellerIds] = await Promise.all([
         getStoreProducts(),
         getStoreKits(),
+        getBestSellerIds(10),
     ]);
+
+    // Más vendidos que siguen publicados, en orden de ventas. Sin ventas todavía: los que tienen stock.
+    const byId = new Map(products.map((p) => [p.id, p]));
+    const sold = bestSellerIds.flatMap((id) => byId.get(id) ?? []);
+    const bestSellers = sold.length > 0 ? sold : products.filter((p) => p.stock > 0).slice(0, 10);
 
     if (!config) {
         return (
@@ -45,7 +51,13 @@ export default async function StorePage() {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
             />
-            <StoreHome products={products} kits={kits} dollarRate={config.dollarRate} />
+            <StoreHome
+                products={products}
+                kits={kits}
+                bestSellers={bestSellers}
+                bestSellersAreSales={sold.length > 0}
+                dollarRate={config.dollarRate}
+            />
         </>
     );
 }

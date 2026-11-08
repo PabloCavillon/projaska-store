@@ -47,7 +47,7 @@ export default function StoreNavbar({ session }: StoreNavbarProps) {
                 </Link>
 
                 <nav className="hidden md:flex items-center gap-2" aria-label="Principal">
-                    <NavLink href="/" active={pathname === "/"}>Catálogo</NavLink>
+                    <NavLink href="/catalog" active={pathname.startsWith("/catalog")}>Catálogo</NavLink>
                     {session && <NavLink href="/orders" active={pathname.startsWith("/orders")}>Mis pedidos</NavLink>}
                 </nav>
 
@@ -100,7 +100,7 @@ export default function StoreNavbar({ session }: StoreNavbarProps) {
 
             {menuOpen && (
                 <nav className="md:hidden border-t border-hud-line bg-lb px-4 py-3 flex flex-col osd text-base" aria-label="Menú">
-                    <Link href="/" onClick={close} className="py-3 border-b border-hud-line">Catálogo</Link>
+                    <Link href="/catalog" onClick={close} className="py-3 border-b border-hud-line">Catálogo</Link>
                     {session ? (
                         <>
                             <Link href="/orders" onClick={close} className="py-3 border-b border-hud-line">Mis pedidos</Link>

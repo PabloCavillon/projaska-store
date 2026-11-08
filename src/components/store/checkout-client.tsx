@@ -27,7 +27,7 @@ export function CheckoutClient({ config, isGuild, customerName }: CheckoutClient
             <div className="border border-hud-line flex flex-col items-center justify-center py-28 px-6 text-center gap-4">
                 <p className="osd text-sm text-osd-dim">Carrito 00</p>
                 <p className="text-xl">Tu carrito está vacío.</p>
-                <Link href="/" className="vf-btn vf-btn-primary">Ir al catálogo</Link>
+                <Link href="/catalog" className="vf-btn vf-btn-primary">Ir al catálogo</Link>
             </div>
         );
     }

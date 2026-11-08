@@ -26,7 +26,7 @@ export default async function MyOrdersPage() {
             {orders.length === 0 ? (
                 <div className="border border-hud-line flex flex-col items-center justify-center py-24 px-6 text-center gap-4">
                     <p className="text-lg">Todavía no hiciste ningún pedido.</p>
-                    <Link href="/" className="vf-btn vf-btn-primary">Ir al catálogo</Link>
+                    <Link href="/catalog" className="vf-btn vf-btn-primary">Ir al catálogo</Link>
                 </div>
             ) : (
                 <ul className="divide-y divide-hud-line">

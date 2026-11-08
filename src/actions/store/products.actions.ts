@@ -85,3 +85,24 @@ export async function getStoreProducts(): Promise<{ products: StoreProduct[]; co
     const priceInfo: PriceInfo = { dollarRate: config.dollarRate, shippingPct: config.shippingPct, profitPct: config.profitPct };
     return { products: products.map((p) => mapProduct(p, priceInfo)), config: priceInfo };
 }
+
+/** IDs de los productos más vendidos (pedidos manuales + tienda, sin cancelados), de mayor a menor. */
+export async function getBestSellerIds(limit = 10): Promise<string[]> {
+    const [manual, store] = await Promise.all([
+        prisma.orderItem.groupBy({
+            by: ["productId"],
+            _sum: { quantity: true },
+            where: { order: { status: { not: "CANCELLED" }, deletedAt: null } },
+        }),
+        prisma.storeOrderItem.groupBy({
+            by: ["productId"],
+            _sum: { quantity: true },
+            where: { productId: { not: null }, storeOrder: { status: { not: "CANCELLED" }, deletedAt: null } },
+        }),
+    ]);
+    const totals = new Map<string, number>();
+    for (const row of [...manual, ...store]) {
+        if (row.productId) totals.set(row.productId, (totals.get(row.productId) ?? 0) + (row._sum.quantity ?? 0));
+    }
+    return [...totals].sort((a, b) => b[1] - a[1]).slice(0, limit).map(([id]) => id);
+}
