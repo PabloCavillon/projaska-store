@@ -140,7 +140,7 @@ export function KitForm({ kit, products, kits }: Props) {
                         ) : (
                             <div className="flex flex-col items-center gap-1 text-zinc-400">
                                 <ImagePlus size={22} />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Subir</span>
+                                <span className="text-xs font-bold uppercase tracking-wider">Subir</span>
                             </div>
                         )}
                     </div>
@@ -225,7 +225,7 @@ export function KitForm({ kit, products, kits }: Props) {
                                 {/* Tipo badge */}
                                 <div className="flex items-center gap-2 shrink-0">
                                     <span className={cn(
-                                        "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg",
+                                        "text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-lg",
                                         isKitRow ? "bg-violet-100 text-violet-700" : "bg-blue-50 text-blue-700"
                                     )}>
                                         {isKitRow ? "Kit" : "Producto"}

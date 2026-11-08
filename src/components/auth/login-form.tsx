@@ -94,11 +94,15 @@ export default function LoginForm() {
 							disabled={isLoading}
 							className={inputClasses}
 						/>
-						<div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 cursor-pointer">
-							<div onClick={() => setShowPassword(!showPassword)}>
-								{showPassword ? <Eye size={22} /> : <EyeClosed size={22} />}
-							</div>
-						</div>
+						<button
+							type="button"
+							onClick={() => setShowPassword(!showPassword)}
+							aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+							aria-pressed={showPassword}
+							className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 inline-flex items-center justify-center text-zinc-500 hover:text-zinc-900 cursor-pointer"
+						>
+							{showPassword ? <Eye size={22} aria-hidden="true" /> : <EyeClosed size={22} aria-hidden="true" />}
+						</button>
 					</div>
 				</div>
 

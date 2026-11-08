@@ -93,7 +93,7 @@ export function CameraWall({ children }: { children: ReactNode }) {
                                 )}
                             >
                                 <FeedPicture feed={f} still />
-                                <span className="osd absolute left-1.5 bottom-1 text-[10px] text-osd">{f.cam.replace("CAM ", "")}</span>
+                                <span className="osd absolute left-1.5 bottom-1 text-[11px] text-osd">{f.cam.replace("CAM ", "")}</span>
                             </button>
                         ))}
                     </div>

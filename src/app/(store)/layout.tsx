@@ -32,8 +32,11 @@ export default async function StoreLayout({
         <CartProvider>
             <ServiceWorkerRegistrar />
             <div className={`store ${osdFont.variable} min-h-screen flex flex-col`}>
+                <a href="#contenido" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:bg-lb focus:px-4 focus:py-3 osd text-sm">
+                    Saltar al contenido
+                </a>
                 <StoreNavbar session={session} />
-                <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10">
+                <main id="contenido" tabIndex={-1} className="outline-none flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10">
                     {children}
                 </main>
                 <footer className="border-t border-hud-line">

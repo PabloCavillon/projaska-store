@@ -118,19 +118,19 @@ export function PriceConfigForm({ config }: PriceConfigFormProps) {
                 {rateInfo && (
                     <div className="flex flex-wrap gap-4 mt-1">
                         <div className="text-xs text-zinc-500 bg-zinc-50 rounded-xl px-4 py-2.5 space-y-0.5">
-                            <p className="font-black text-zinc-400 uppercase tracking-widest text-[10px]">Compra</p>
+                            <p className="font-black text-zinc-400 uppercase tracking-widest text-xs">Compra</p>
                             <p className="font-bold text-zinc-700">${rateInfo.compra.toLocaleString("es-AR")}</p>
                         </div>
                         <div className="text-xs text-zinc-500 bg-zinc-50 rounded-xl px-4 py-2.5 space-y-0.5">
-                            <p className="font-black text-zinc-400 uppercase tracking-widest text-[10px]">Venta</p>
+                            <p className="font-black text-zinc-400 uppercase tracking-widest text-xs">Venta</p>
                             <p className="font-bold text-zinc-700">${rateInfo.venta.toLocaleString("es-AR")}</p>
                         </div>
                         <div className="text-xs text-zinc-500 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-2.5 space-y-0.5">
-                            <p className="font-black text-emerald-600 uppercase tracking-widest text-[10px]">Promedio aplicado</p>
+                            <p className="font-black text-emerald-600 uppercase tracking-widest text-xs">Promedio aplicado</p>
                             <p className="font-bold text-emerald-700">${((rateInfo.compra + rateInfo.venta) / 2).toLocaleString("es-AR", { maximumFractionDigits: 2 })}</p>
                         </div>
                         <div className="text-xs text-zinc-500 bg-zinc-50 rounded-xl px-4 py-2.5 space-y-0.5">
-                            <p className="font-black text-zinc-400 uppercase tracking-widest text-[10px]">Actualizado</p>
+                            <p className="font-black text-zinc-400 uppercase tracking-widest text-xs">Actualizado</p>
                             <p className="font-bold text-zinc-700">{new Date(rateInfo.updatedAt).toLocaleString("es-AR")}</p>
                         </div>
                     </div>

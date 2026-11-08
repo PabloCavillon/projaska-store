@@ -16,7 +16,7 @@ export default function GlobalError({
     return (
         <html lang="es">
             <body className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 px-4 text-center font-sans">
-                <p className="text-[8rem] font-black text-zinc-100 leading-none select-none">500</p>
+                <p className="text-8xl font-black text-zinc-100 leading-none select-none">500</p>
                 <div className="-mt-6 space-y-2">
                     <h1 className="text-2xl font-extrabold tracking-tight text-zinc-900">
                         Algo salió mal

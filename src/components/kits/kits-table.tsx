@@ -124,7 +124,7 @@ export default function KitsTable({ kits: initialKits }: { kits: SerializedKit[]
                                                         {kit.items.map((item) => (
                                                             <li key={item.id} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
                                                                 <span className={cn(
-                                                                    "text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
+                                                                    "text-xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
                                                                     item.childKitId ? "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400" : "bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
                                                                 )}>
                                                                     {item.childKitId ? "Kit" : "Prod"}
@@ -189,7 +189,7 @@ export default function KitsTable({ kits: initialKits }: { kits: SerializedKit[]
                                         {kit.items.map((item) => (
                                             <li key={item.id} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
                                                 <span className={cn(
-                                                    "text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
+                                                    "text-xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
                                                     item.childKitId ? "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400" : "bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
                                                 )}>
                                                     {item.childKitId ? "Kit" : "Prod"}

@@ -48,14 +48,14 @@ export default function StoreRegisterForm({ action, redirectTo }: StoreRegisterF
 
             <div>
                 <label className={labelClass} htmlFor="name">Nombre completo</label>
-                <input id="name" type="text" autoComplete="name" className={inputClass} placeholder="Juan Pérez" {...register("name")} />
-                {errors.name && <p className="text-xs text-caution mt-1.5">{errors.name.message}</p>}
+                <input id="name" type="text" autoComplete="name" className={inputClass} placeholder="Juan Pérez" aria-invalid={errors.name ? true : undefined} aria-describedby={errors.name ? "name-error" : undefined} {...register("name")} />
+                {errors.name && <p id="name-error" className="text-xs text-caution mt-1.5">{errors.name.message}</p>}
             </div>
 
             <div>
                 <label className={labelClass} htmlFor="email">Email</label>
-                <input id="email" type="email" autoComplete="email" className={inputClass} placeholder="tu@email.com" {...register("email")} />
-                {errors.email && <p className="text-xs text-caution mt-1.5">{errors.email.message}</p>}
+                <input id="email" type="email" autoComplete="email" className={inputClass} placeholder="tu@email.com" aria-invalid={errors.email ? true : undefined} aria-describedby={errors.email ? "email-error" : undefined} {...register("email")} />
+                {errors.email && <p id="email-error" className="text-xs text-caution mt-1.5">{errors.email.message}</p>}
             </div>
 
             <div>
@@ -68,14 +68,14 @@ export default function StoreRegisterForm({ action, redirectTo }: StoreRegisterF
 
             <div>
                 <label className={labelClass} htmlFor="password">Contraseña</label>
-                <input id="password" type="password" autoComplete="new-password" className={inputClass} placeholder="Mínimo 8 caracteres" {...register("password")} />
-                {errors.password && <p className="text-xs text-caution mt-1.5">{errors.password.message}</p>}
+                <input id="password" type="password" autoComplete="new-password" className={inputClass} placeholder="Mínimo 8 caracteres" aria-invalid={errors.password ? true : undefined} aria-describedby={errors.password ? "password-error" : undefined} {...register("password")} />
+                {errors.password && <p id="password-error" className="text-xs text-caution mt-1.5">{errors.password.message}</p>}
             </div>
 
             <div>
                 <label className={labelClass} htmlFor="confirmPassword">Confirmar contraseña</label>
-                <input id="confirmPassword" type="password" autoComplete="new-password" className={inputClass} placeholder="Repetí tu contraseña" {...register("confirmPassword")} />
-                {errors.confirmPassword && <p className="text-xs text-caution mt-1.5">{errors.confirmPassword.message}</p>}
+                <input id="confirmPassword" type="password" autoComplete="new-password" className={inputClass} placeholder="Repetí tu contraseña" aria-invalid={errors.confirmPassword ? true : undefined} aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined} {...register("confirmPassword")} />
+                {errors.confirmPassword && <p id="confirmPassword-error" className="text-xs text-caution mt-1.5">{errors.confirmPassword.message}</p>}
             </div>
 
             {serverError && (

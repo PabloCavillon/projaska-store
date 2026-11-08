@@ -175,7 +175,7 @@ export function ProductForm({ product, config }: Props) {
                         ) : (
                             <div className="flex flex-col items-center gap-1 text-zinc-400">
                                 <ImagePlus size={22} />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Subir</span>
+                                <span className="text-xs font-bold uppercase tracking-wider">Subir</span>
                             </div>
                         )}
                     </div>
@@ -350,30 +350,30 @@ export function ProductForm({ product, config }: Props) {
                 {/* Preview en vivo */}
                 {offerPreview && (
                     <div className="bg-white border border-rose-100 rounded-xl p-4 space-y-3">
-                        <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest flex items-center gap-1.5">
+                        <p className="text-xs font-black text-rose-600 uppercase tracking-widest flex items-center gap-1.5">
                             <Info size={10} />
                             Preview de la oferta {offerUnit === "box" ? "(por caja)" : "(por unidad)"}
                         </p>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-0.5">
-                                <p className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold">Precio regular</p>
+                                <p className="text-xs text-zinc-400 uppercase tracking-wider font-bold">Precio regular</p>
                                 <p className="text-base font-black text-zinc-400 line-through">{fmtArs(offerPreview.regularPriceArs)}</p>
                             </div>
                             <div className="space-y-0.5">
-                                <p className="text-[10px] text-rose-500 uppercase tracking-wider font-bold">Precio con oferta</p>
+                                <p className="text-xs text-rose-500 uppercase tracking-wider font-bold">Precio con oferta</p>
                                 <p className="text-base font-black text-rose-600">{fmtArs(offerPreview.offerPriceArs)}</p>
                             </div>
                             <div className="space-y-0.5">
-                                <p className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold">Ganancia regular</p>
+                                <p className="text-xs text-zinc-400 uppercase tracking-wider font-bold">Ganancia regular</p>
                                 <p className={cn("text-sm font-black", offerPreview.regularProfitArs >= 0 ? "text-emerald-600" : "text-red-500")}>
                                     {fmtArs(offerPreview.regularProfitArs)}
                                 </p>
                             </div>
                             <div className="space-y-0.5">
-                                <p className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold">Ganancia en oferta</p>
+                                <p className="text-xs text-zinc-400 uppercase tracking-wider font-bold">Ganancia en oferta</p>
                                 <p className={cn("text-sm font-black", offerPreview.offerProfitArs >= 0 ? "text-emerald-600" : "text-red-500")}>
                                     {fmtArs(offerPreview.offerProfitArs)}
-                                    {offerPreview.offerProfitArs < 0 && <span className="text-[9px] ml-1 font-bold text-red-400">¡Pérdida!</span>}
+                                    {offerPreview.offerProfitArs < 0 && <span className="text-xs ml-1 font-bold text-red-400">¡Pérdida!</span>}
                                 </p>
                             </div>
                         </div>

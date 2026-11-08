@@ -21,7 +21,7 @@ export default async function NewOrderPage() {
             <header className="space-y-6">
                 <Link
                     href="/admin/orders"
-                    className="inline-flex items-center text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-zinc-900 transition-colors gap-2 group"
+                    className="inline-flex items-center text-xs font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-zinc-900 transition-colors gap-2 group"
                 >
                     <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
                     Volver a Órdenes
@@ -48,7 +48,7 @@ export default async function NewOrderPage() {
             </section>
 
             <footer className="text-center pt-4">
-                <p className="text-[10px] text-zinc-300 uppercase tracking-[0.3em] font-medium">
+                <p className="text-xs text-zinc-300 uppercase tracking-[0.3em] font-medium">
                     Sistema de Ventas • Cuarzo Studio
                 </p>
             </footer>

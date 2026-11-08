@@ -20,7 +20,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <header className="space-y-6">
                 <Link
                     href="/admin/orders"
-                    className="inline-flex items-center text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-zinc-900 transition-colors gap-2 group"
+                    className="inline-flex items-center text-xs font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-zinc-900 transition-colors gap-2 group"
                 >
                     <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
                     Volver al Listado
@@ -41,7 +41,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                         </div>
                     </div>
 
-                    <div className={`px-4 py-2 border rounded-full text-[10px] font-bold uppercase tracking-widest ${STATUS_STYLE[order.status]}`}>
+                    <div className={`px-4 py-2 border rounded-full text-xs font-bold uppercase tracking-widest ${STATUS_STYLE[order.status]}`}>
                         {STATUS_LABEL[order.status]}
                     </div>
                 </div>
@@ -51,7 +51,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
                 {/* Tabla de items */}
                 <div className="px-8 md:px-12 pt-10 pb-6">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-6">
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400 mb-6">
                         Productos
                     </p>
 
@@ -63,19 +63,19 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                             >
                                 <div className="flex flex-col gap-0.5">
                                     <span className="text-sm font-semibold text-zinc-900">{item.product.name}</span>
-                                    <span className="text-[10px] font-mono text-zinc-400 uppercase">{item.product.sku}</span>
+                                    <span className="text-xs font-mono text-zinc-400 uppercase">{item.product.sku}</span>
                                 </div>
                                 <div className="flex items-center gap-8 text-sm">
                                     <div className="text-center">
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Cant.</p>
+                                        <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Cant.</p>
                                         <p className="font-semibold text-zinc-900">{item.quantity}</p>
                                     </div>
                                     <div className="text-center">
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Precio</p>
+                                        <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Precio</p>
                                         <p className="font-semibold text-zinc-900">${item.unitPrice.toFixed(2)}</p>
                                     </div>
                                     <div className="text-center min-w-20 ">
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Subtotal</p>
+                                        <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Subtotal</p>
                                         <p className="font-semibold text-zinc-900">${(item.unitPrice * item.quantity).toFixed(2)}</p>
                                     </div>
                                 </div>
@@ -103,7 +103,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                     </div>
 
                     <div className="text-right">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1">Total</p>
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1">Total</p>
                         <p className="text-3xl font-extrabold tracking-tighter text-zinc-900">
                             ${order.total.toFixed(2)}
                         </p>

@@ -1,3 +1,4 @@
+import { jsonLdHtml } from "@/lib/utils";
 import { getStoreProduct } from "@/actions/store/products.actions";
 import { ProductDetailClient } from "@/components/store/product-detail-client";
 import { ViewfinderImage } from "@/components/store/viewfinder-image";
@@ -55,7 +56,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <div className="max-w-6xl mx-auto">
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                dangerouslySetInnerHTML={{ __html: jsonLdHtml(jsonLd) }}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-14 items-start">
                 <div className="md:sticky md:top-24">

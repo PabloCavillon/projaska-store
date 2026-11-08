@@ -27,3 +27,8 @@ export function safeRedirect(path: string | null | undefined, fallback = "/"): s
     if (!path || !path.startsWith("/") || path.startsWith("//") || path.startsWith("/\\")) return fallback;
     return path;
 }
+
+/** JSON para <script type="application/ld+json">: escapa "<" para que un texto con "</script>" no cierre el bloque. */
+export function jsonLdHtml(data: unknown): string {
+    return JSON.stringify(data).replace(/</g, "\\u003c");
+}

@@ -1,7 +1,7 @@
 import { getStoreKit } from "@/actions/store/kits.actions";
 import { AddToCartControls } from "@/components/store/add-to-cart-controls";
 import { ViewfinderImage } from "@/components/store/viewfinder-image";
-import { fmtArs, fmtUsd } from "@/lib/utils";
+import { fmtArs, fmtUsd, jsonLdHtml } from "@/lib/utils";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -56,7 +56,7 @@ export default async function KitDetailPage({ params }: { params: Promise<{ id: 
         <div className="max-w-6xl mx-auto">
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                dangerouslySetInnerHTML={{ __html: jsonLdHtml(jsonLd) }}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-14 items-start">
                 <div className="md:sticky md:top-24">

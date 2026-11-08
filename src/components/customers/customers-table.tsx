@@ -64,7 +64,7 @@ export default function CustomersTable({ customers: initialCustomers }: { custom
                                         <td className="px-6 py-4">
                                             <p className="font-bold text-base text-zinc-900">{customer.name}</p>
                                             {customer.isGuild && (
-                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full mt-1">
+                                                <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full mt-1">
                                                     Gremio
                                                 </span>
                                             )}
@@ -115,7 +115,7 @@ export default function CustomersTable({ customers: initialCustomers }: { custom
                                             {customer.name}
                                         </p>
                                         {customer.isGuild && (
-                                            <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
+                                            <span className="inline-flex items-center text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
                                                 Gremio
                                             </span>
                                         )}

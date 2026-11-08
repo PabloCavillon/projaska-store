@@ -49,3 +49,14 @@ describe("fmtUsd", () => {
         expect(fmtUsd(1234.4)).toBe("US$ 1.234");
     });
 });
+
+import { jsonLdHtml } from "@/lib/utils";
+
+describe("jsonLdHtml", () => {
+    it("un </script> en el texto no cierra el bloque y el JSON sigue siendo el mismo", () => {
+        const data = { description: "lente </script><script>alert(1)</script>" };
+        const html = jsonLdHtml(data);
+        expect(html).not.toContain("<");
+        expect(JSON.parse(html)).toEqual(data);
+    });
+});

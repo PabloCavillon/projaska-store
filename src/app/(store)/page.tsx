@@ -1,3 +1,4 @@
+import { jsonLdHtml } from "@/lib/utils";
 import { getBestSellerIds, getStoreProducts } from "@/actions/store/products.actions";
 import { getStoreKits } from "@/actions/store/kits.actions";
 import { StoreHome } from "@/components/store/store-home";
@@ -49,7 +50,7 @@ export default async function StorePage() {
         <>
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+                dangerouslySetInnerHTML={{ __html: jsonLdHtml(orgJsonLd) }}
             />
             <StoreHome
                 products={products}

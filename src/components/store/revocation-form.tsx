@@ -42,18 +42,18 @@ export default function RevocationForm({ defaults }: { defaults?: Partial<Revoca
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div>
                 <label className="vf-label" htmlFor="orderCode">Código de pedido</label>
-                <input id="orderCode" className="vf-input" placeholder="STR-XXXXXXXX" {...register("orderCode")} />
-                {errors.orderCode && <p className="text-xs text-caution mt-1.5">{errors.orderCode.message}</p>}
+                <input id="orderCode" className="vf-input" placeholder="STR-XXXXXXXX" aria-invalid={errors.orderCode ? true : undefined} aria-describedby={errors.orderCode ? "orderCode-error" : undefined} {...register("orderCode")} />
+                {errors.orderCode && <p id="orderCode-error" className="text-xs text-caution mt-1.5">{errors.orderCode.message}</p>}
             </div>
             <div>
                 <label className="vf-label" htmlFor="rev-name">Nombre completo</label>
-                <input id="rev-name" autoComplete="name" className="vf-input" {...register("name")} />
-                {errors.name && <p className="text-xs text-caution mt-1.5">{errors.name.message}</p>}
+                <input id="rev-name" autoComplete="name" className="vf-input" aria-invalid={errors.name ? true : undefined} aria-describedby={errors.name ? "rev-name-error" : undefined} {...register("name")} />
+                {errors.name && <p id="rev-name-error" className="text-xs text-caution mt-1.5">{errors.name.message}</p>}
             </div>
             <div>
                 <label className="vf-label" htmlFor="rev-email">Email</label>
-                <input id="rev-email" type="email" autoComplete="email" className="vf-input" {...register("email")} />
-                {errors.email && <p className="text-xs text-caution mt-1.5">{errors.email.message}</p>}
+                <input id="rev-email" type="email" autoComplete="email" className="vf-input" aria-invalid={errors.email ? true : undefined} aria-describedby={errors.email ? "rev-email-error" : undefined} {...register("email")} />
+                {errors.email && <p id="rev-email-error" className="text-xs text-caution mt-1.5">{errors.email.message}</p>}
             </div>
             <div>
                 <label className="vf-label" htmlFor="rev-phone">

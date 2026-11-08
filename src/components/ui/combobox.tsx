@@ -87,7 +87,7 @@ export default function Combobox({
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder={searchPlaceholder}
-                                className="flex-1 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 bg-transparent"
+                                className="flex-1 text-sm text-zinc-900 placeholder:text-zinc-400 bg-transparent"
                             />
                         </div>
 

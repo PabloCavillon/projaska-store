@@ -9,7 +9,7 @@ export const LEGAL = {
     holder: "[RAZÓN SOCIAL O NOMBRE DEL TITULAR]",
     cuit: "[CUIT]",
     address: "[DOMICILIO COMERCIAL], Salta, Argentina",
-    email: "[EMAIL DE CONTACTO]",
+    email: "info.projaska@gmail.com",
     updated: "8 de noviembre de 2026",
 };
 
