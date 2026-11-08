@@ -118,7 +118,7 @@ export default function KitsTable({ kits: initialKits }: { kits: SerializedKit[]
 
                                         {/* Expanded items row */}
                                         {expandedId === kit.id && (
-                                            <tr key={`${kit.id}-items`} className="bg-zinc-100/50 dark:bg-zinc-800/30">
+                                            <tr key={`${kit.id}-items`} className="bg-zinc-100/50">
                                                 <td colSpan={6} className="px-10 py-3">
                                                     <ul className="space-y-1">
                                                         {kit.items.map((item) => (
@@ -166,7 +166,7 @@ export default function KitsTable({ kits: initialKits }: { kits: SerializedKit[]
                                                 "inline-flex px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-widest border",
                                                 kit.isActive
                                                     ? "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800"
-                                                    : "bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
+                                                    : "bg-zinc-100 text-zinc-500 border-zinc-200"
                                             )}>
                                                 {kit.isActive ? "Activo" : "Inactivo"}
                                             </span>

@@ -43,12 +43,12 @@ export function OrdersByStatusChart({ data }: Props) {
             ) : (
                 <ResponsiveContainer width="100%" height={240}>
                     <PieChart>
-                        <Pie data={formatted} cx="50%" cy="50%" innerRadius={65} outerRadius={90} paddingAngle={5} dataKey="value" stroke="none">
+                        <Pie data={formatted} cx="50%" cy="50%" innerRadius={65} outerRadius={90} paddingAngle={2} dataKey="value" stroke="none" animationDuration={600}>
                             {formatted.map((entry, index) => (
                                 <Cell key={index} fill={entry.color} className="outline-none" />
                             ))}
                         </Pie>
-                        <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ fontSize: '12px', fontWeight: 'bold', borderRadius: '16px', border: "1px solid #f4f4f5", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.05)", padding: '10px 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }} />
+                        <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ fontSize: '12px', fontWeight: 'bold', borderRadius: 0, border: "1px solid #d3d8db", boxShadow: "none", padding: '10px 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }} />
                         <Legend verticalAlign="bottom" align="center" iconType="circle" iconSize={8}
                             formatter={(value) => (
                                 <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1">{value}</span>

@@ -49,13 +49,13 @@ export default function LoginForm() {
 	return (
 		<div className="bg-white p-8 md:p-10 rounded-3xl border border-zinc-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
 			{/* Header */}
-			<header className="mb-10 text-center">
-				<h1 className="text-3xl font-extrabold tracking-tighter text-zinc-900">
-					Stock App
+			<header className="mb-10 flex flex-col items-center text-center">
+				{/* eslint-disable-next-line @next/next/no-img-element -- logo fijo de /public */}
+				<img src="/icon-192.png" alt="" width={48} height={48} className="mb-4" />
+				<h1 className="text-3xl text-zinc-900">
+					Projaska
 				</h1>
-				<p className="text-sm text-zinc-500 mt-2 font-light">
-					Ingresá tus credenciales
-				</p>
+				<p className="text-xs uppercase text-zinc-500 mt-1">Panel de gestión</p>
 			</header>
 
 			<form onSubmit={handleSubmit} className="space-y-6">

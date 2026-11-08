@@ -66,11 +66,11 @@ export function PushSubscribeButton({ collapsed }: Props) {
             disabled={loading}
             title={collapsed ? (subscribed ? "Desactivar notificaciones" : "Activar notificaciones") : undefined}
             className={`
-                w-full flex items-center gap-3 px-3 py-3 rounded-xl text-base font-bold
-                transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer
+                w-full flex items-center gap-3 px-3 py-3 uppercase text-sm text-left
+                disabled:opacity-50 cursor-pointer
                 ${subscribed
-                    ? "text-indigo-600 hover:bg-indigo-50"
-                    : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
+                    ? "text-pj dark:text-pj-ink hover:bg-zinc-100"
+                    : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
                 }
                 ${collapsed ? "justify-center" : ""}
             `}

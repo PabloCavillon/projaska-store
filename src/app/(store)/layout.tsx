@@ -4,14 +4,8 @@ import { ServiceWorkerRegistrar } from "@/components/store/service-worker-regist
 import { getStoreSession } from "@/lib/store-auth";
 import { whatsappUrl } from "@/lib/store-contact";
 import { Metadata } from "next";
-import { Share_Tech_Mono } from "next/font/google";
+import { osdFont } from "@/lib/fonts";
 import { ArrowRight } from "lucide-react";
-
-const osdFont = Share_Tech_Mono({
-    variable: "--font-share-tech-mono",
-    weight: "400",
-    subsets: ["latin"],
-});
 
 export const dynamic = 'force-dynamic';
 

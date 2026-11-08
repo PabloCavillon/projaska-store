@@ -19,7 +19,7 @@ export const PageLayout = ({
     children
 }: PageLayoutProps) => {
     return (
-        <div className="max-w-7xl mx-auto p-4 md:p-10 space-y-6 md:space-y-8 animate-in fade-in duration-700">
+        <div className="max-w-7xl mx-auto p-4 md:p-10 space-y-6 md:space-y-8">
 
             <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="space-y-2">
@@ -38,7 +38,7 @@ export const PageLayout = ({
 
                 <Link
                     href={buttonHref}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-zinc-900 text-white px-6 py-3 rounded-xl text-base font-bold hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-sm shadow-zinc-200 shrink-0"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-zinc-900 text-white px-6 py-3 uppercase text-sm hover:bg-zinc-800 shrink-0"
                 >
                     <Plus className="w-4 h-4" />
                     {buttonText}

@@ -11,14 +11,14 @@ type Props = {
 export function TopProductsChart({ data }: Props) {
 	const isDark = useDarkMode();
 
-	const barColor    = isDark ? '#a1a1aa' : '#18181b';
-	const gridColor   = isDark ? '#27272a' : '#f4f4f5';
-	const xLabelColor = isDark ? '#71717a' : '#a1a1aa';
-	const yLabelColor = isDark ? '#e4e4e7' : '#18181b';
-	const cursorColor = isDark ? '#27272a' : '#fafafa';
-	const tooltipBg   = isDark ? '#1a1b25' : '#ffffff';
-	const tooltipBorder = isDark ? '#3f3f46' : '#f4f4f5';
-	const tooltipText = isDark ? '#e4e4e7' : '#18181b';
+	const barColor    = isDark ? '#5fb2e8' : '#1479bc';
+	const gridColor   = isDark ? '#2a2f33' : '#e6e9eb';
+	const xLabelColor = isDark ? '#9aa2a8' : '#5d666c';
+	const yLabelColor = isDark ? '#f2f4f5' : '#16191c';
+	const cursorColor = isDark ? '#16191c' : '#f3f5f6';
+	const tooltipBg   = isDark ? '#16191c' : '#ffffff';
+	const tooltipBorder = isDark ? '#2a2f33' : '#d3d8db';
+	const tooltipText = isDark ? '#f2f4f5' : '#16191c';
 
 	return (
 		<div className="bg-white rounded-3xl border border-zinc-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none p-6">
@@ -27,7 +27,7 @@ export function TopProductsChart({ data }: Props) {
 					<Star size={18} />
 				</div>
 				<div>
-					<h2 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Productos Top</h2>
+					<h2 className="text-sm font-bold text-zinc-900 uppercase tracking-tight">Productos Top</h2>
 					<p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Rendimiento por unidades</p>
 				</div>
 			</div>
@@ -47,9 +47,9 @@ export function TopProductsChart({ data }: Props) {
 							contentStyle={{
 								fontSize: '12px',
 								fontWeight: 'bold',
-								borderRadius: '16px',
+								borderRadius: 0,
 								border: `1px solid ${tooltipBorder}`,
-								boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.15)',
+								boxShadow: 'none',
 								padding: '10px 12px',
 								textTransform: 'uppercase',
 								letterSpacing: '0.05em',
@@ -57,7 +57,7 @@ export function TopProductsChart({ data }: Props) {
 								background: tooltipBg,
 							}}
 						/>
-						<Bar name="Cantidad" dataKey="quantity" fill={barColor} radius={[0, 8, 8, 0]} barSize={20} />
+						<Bar name="Cantidad" dataKey="quantity" fill={barColor} barSize={16} animationDuration={600} />
 					</BarChart>
 				</ResponsiveContainer>
 			)}

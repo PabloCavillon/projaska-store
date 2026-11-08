@@ -109,6 +109,107 @@
 	background-color: #373a57;
 }
 
+/* ── Admin: el mismo mundo Projaska, como panel de control ──────
+   Ámbito .admin (layout del panel y login). Remapea los zinc que usan todas
+   las pantallas a los grises HUD, cuadra las esquinas, quita las sombras y
+   pone las lecturas en la tipografía de cámara. Claro y oscuro siguen. */
+.admin {
+	--color-zinc-50: #f3f5f6;
+	--color-zinc-100: #e6e9eb;
+	--color-zinc-200: #d3d8db;
+	--color-zinc-300: #b4bbc0;
+	--color-zinc-400: #7f888e;
+	--color-zinc-500: #5d666c;
+	--color-zinc-600: #3f474c;
+	--color-zinc-700: #2f363a;
+	--color-zinc-800: #1d2226;
+	--color-zinc-900: #16191c;
+	--admin-lock: var(--color-zinc-900);
+
+	/* Esquinas rectas en todo el panel (rounded-full queda para puntos de estado) */
+	--radius-xs: 0px;
+	--radius-sm: 0px;
+	--radius-md: 0px;
+	--radius-lg: 0px;
+	--radius-xl: 0px;
+	--radius-2xl: 0px;
+	--radius-3xl: 0px;
+	--radius-4xl: 0px;
+
+	accent-color: var(--color-pj);
+	caret-color: var(--color-pj);
+	background: var(--color-zinc-50);
+}
+.dark .admin {
+	--color-white: #111316;
+	--color-zinc-50: #0a0a0a;
+	--color-zinc-100: #16191c;
+	--color-zinc-200: #2a2f33;
+	--color-zinc-300: #3a4146;
+	--color-zinc-400: #7d868c;
+	--color-zinc-500: #9aa2a8;
+	--color-zinc-600: #b4bbc0;
+	--color-zinc-700: #cdd2d6;
+	--color-zinc-800: #e2e6e8;
+	--color-zinc-900: #f2f4f5;
+	--admin-lock: var(--color-caution);
+	caret-color: var(--color-caution);
+
+	/* Ámbar (pendiente, stock bajo): el override global de .dark no lo cubría */
+	--color-amber-50: #241a02;
+	--color-amber-100: #332504;
+	--color-amber-200: #4d3806;
+	--color-amber-600: #ffb000;
+	--color-amber-700: #ffb000;
+}
+
+/* Sin elevación: la jerarquía la dan filetes y corchetes, no sombras */
+.admin * { --tw-shadow: 0 0 #0000; }
+
+/* Lecturas de cámara: títulos, encabezados de tabla y rótulos en mayúsculas */
+.admin h1 {
+	font-family: var(--font-share-tech-mono), ui-monospace, monospace;
+	font-weight: 400;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+.admin th,
+.admin .uppercase {
+	font-family: var(--font-share-tech-mono), ui-monospace, monospace;
+	font-weight: 400;
+	letter-spacing: 0.08em;
+}
+.admin td { font-variant-numeric: tabular-nums; }
+
+/* Una sola acción primaria: azul Projaska (antes bloque zinc-900) */
+.admin .bg-zinc-900,
+.dark .admin .bg-zinc-900 { background-color: var(--color-pj); color: #fff; }
+.admin .hover\:bg-zinc-800:hover,
+.dark .admin .hover\:bg-zinc-800:hover,
+.dark .admin .hover\:bg-zinc-700:hover { background-color: var(--color-pj-hi); }
+
+.admin ::selection { background: var(--color-pj); color: #fff; }
+.admin :focus-visible { outline: 2px solid var(--color-pj); outline-offset: 2px; }
+.dark .admin :focus-visible { outline-color: var(--color-caution); }
+
+/* Corchetes en el panel: legibles en claro y oscuro, y se cierran con un corte corto */
+.admin .vf-focus:hover,
+.admin .vf-focus:focus-within { --vf-c: var(--color-zinc-400); }
+.admin .vf-focus.is-locked { --vf-c: var(--admin-lock); --vf-l: 12px; }
+.admin .vf-focus { transition: background-size 180ms cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* Cada pantalla entra como una toma que hace foco */
+@keyframes admin-focus {
+	from { opacity: 0.4; filter: blur(6px); }
+	to { opacity: 1; filter: none; }
+}
+@keyframes admin-fade { from { opacity: 0.4; } }
+.admin-focus { animation: admin-focus 320ms cubic-bezier(0.16, 1, 0.3, 1); }
+@media (prefers-reduced-motion: reduce) {
+	.admin-focus { animation: admin-fade 150ms ease-out; }
+	.admin .vf-focus { transition: none; }
+}
+
 /* ── Global ────────────────────────────────────────────────── */
 body {
 	background: var(--background);

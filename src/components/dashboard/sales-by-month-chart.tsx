@@ -10,25 +10,25 @@ type Props = {
 export function SalesByMonthChart({ data }: Props) {
     const isDark = useDarkMode();
 
-    const gridColor   = isDark ? '#27272a' : '#f4f4f5';
-    const labelColor  = isDark ? '#71717a' : '#a1a1aa';
-    const lineColor   = isDark ? '#ffffff' : '#18181b';
-    const tooltipBg   = isDark ? '#18181b' : '#ffffff';
-    const tooltipBorder = isDark ? '#3f3f46' : '#f4f4f5';
-    const tooltipText = isDark ? '#e4e4e7' : '#18181b';
+    const gridColor   = isDark ? '#2a2f33' : '#e6e9eb';
+    const labelColor  = isDark ? '#9aa2a8' : '#5d666c';
+    const lineColor   = isDark ? '#5fb2e8' : '#1479bc'; // azul Projaska (ink sobre negro)
+    const tooltipBg   = isDark ? '#16191c' : '#ffffff';
+    const tooltipBorder = isDark ? '#2a2f33' : '#d3d8db';
+    const tooltipText = isDark ? '#f2f4f5' : '#16191c';
     const gradientId  = isDark ? 'salesGradientDark' : 'salesGradientLight';
 
     return (
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none p-6">
+        <div className="bg-white rounded-3xl border border-zinc-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none p-6">
             <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-zinc-100 rounded-xl text-zinc-900 shrink-0">
                     <TrendingUp size={18} />
                 </div>
                 <div>
-                    <h2 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-tight">
+                    <h2 className="text-sm font-bold text-zinc-900 uppercase tracking-tight">
                         Rendimiento de Ventas
                     </h2>
-                    <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
                         Ingresos mensuales
                     </p>
                 </div>
@@ -59,16 +59,16 @@ export function SalesByMonthChart({ data }: Props) {
                             tick={{ fontSize: 11, fill: labelColor, fontWeight: 600 }}
                             axisLine={false}
                             tickLine={false}
-                            tickFormatter={(v) => `$${v.toLocaleString()}`}
+                            tickFormatter={(v: number) => v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `$${Math.round(v / 1e3)}k` : `$${v}`}
                         />
                         <Tooltip
                             cursor={{ stroke: gridColor, strokeWidth: 1 }}
                             contentStyle={{
                                 fontSize: '12px',
                                 fontWeight: 'bold',
-                                borderRadius: '16px',
+                                borderRadius: 0,
                                 border: `1px solid ${tooltipBorder}`,
-                                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.15)',
+                                boxShadow: 'none',
                                 padding: '10px 12px',
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.05em',
@@ -77,13 +77,13 @@ export function SalesByMonthChart({ data }: Props) {
                             }}
                         />
                         <Area
-                            type="monotone"
+                            type="linear"
                             dataKey="total"
                             stroke={lineColor}
-                            strokeWidth={2.5}
+                            strokeWidth={2}
                             fillOpacity={1}
                             fill={`url(#${gradientId})`}
-                            animationDuration={1500}
+                            animationDuration={600}
                         />
                     </AreaChart>
                 </ResponsiveContainer>

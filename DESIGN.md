@@ -238,6 +238,16 @@ A square, hairline-outlined group. The minus key is dim and becomes a trash icon
 ### REC Readout
 A white dot at the top left of the home viewfinder that blinks at 1.6s with `steps(1)`. The blink is disabled under `prefers-reduced-motion`.
 
+## Admin panel
+
+The admin (`.admin`, on the dashboard layout and the login) speaks the same world as a control panel, keeping its light and dark modes. It is an Operate surface: density and familiar patterns stay, and the brand lives in the details.
+
+- **Tokens, not rewrites.** `.admin` remaps the zinc scale to the HUD grays (light: #f3f5f6 ground to #16191c ink; dark: letterbox #0a0a0a ground to #f2f4f5 ink), sets every `rounded-*` radius to 0 and removes `box-shadow`. New screens get the look by using zinc utilities as before.
+- **Readouts.** `h1`, table headers and any `uppercase` label render in Share Tech Mono at 400. Stat values use `.osd`. Names and sentences stay Geist.
+- **One action.** `bg-zinc-900` (the old dark button) renders Lens Blue, with Lens Blue Lit on hover. Do not use `bg-zinc-900` for anything but the primary action.
+- **Navigation.** The active section is locked with small brackets (12px), dark ink in light mode and Caution Amber in dark, plus a Lens Blue icon.
+- **Motion.** Each screen enters with a 320ms focus pull (blur 6px to sharp, opacity 0.4 to 1, `cubic-bezier(0.16,1,0.3,1)`) from `template.tsx`; under reduced motion it is a 150ms fade. Brackets close with a 180ms size cut. Charts animate in 600ms. Nothing else moves.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -245,7 +255,7 @@ A white dot at the top left of the home viewfinder that blinks at 1.6s with `ste
 - **Do** show stock, counts, SKU and prices as OSD readouts with tabular figures.
 - **Do** put real photos on the light plate (#e6e9eb, multiply) and leave photo-less wells HUD Gray.
 - **Do** change state with single-frame cuts. Brackets snap to their new size and color.
-- **Do** scope every storefront rule under `.store`, and leave the admin's light/dark system alone.
+- **Do** scope every storefront rule under `.store`, and every admin rule under `.admin`.
 - **Do** keep OSD Dim at #9aa2a8 or lighter for any secondary text on letterbox black.
 
 ### Don't:
