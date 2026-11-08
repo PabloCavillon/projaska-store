@@ -3,13 +3,13 @@ import { getStoreProduct } from "@/actions/store/products.actions";
 import { ProductDetailClient } from "@/components/store/product-detail-client";
 import { ViewfinderImage } from "@/components/store/viewfinder-image";
 import { notFound } from "next/navigation";
+import { metaDescription, productJsonLd } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const product = await getStoreProduct(id);
     if (!product) return { title: "Producto no encontrado" };
-    const description = product.description
-        ?? `Comprá ${product.name} en Projaska — tecnología y seguridad para profesionales.`;
+    const description = metaDescription(product.description ?? `Comprá ${product.name} en Projaska — tecnología y seguridad para profesionales.`);
     return {
         title: product.name,
         description,
@@ -35,22 +35,16 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     const product = await getStoreProduct(id);
     if (!product) notFound();
 
-    const jsonLd = {
-        "@context": "https://schema.org/",
-        "@type": "Product",
+    const jsonLd = productJsonLd({
         name: product.name,
-        description: product.description ?? undefined,
-        image: product.imageUrl ?? undefined,
+        description: product.description,
+        imageUrl: product.imageUrl,
         sku: product.sku,
-        offers: {
-            "@type": "Offer",
-            priceCurrency: "ARS",
-            price: product.priceArs,
-            availability: product.stock > 0
-                ? "https://schema.org/InStock"
-                : "https://schema.org/OutOfStock",
-        },
-    };
+        priceArs: product.priceArs,
+        path: `/products/${id}`,
+        availability: product.stock > 0 ? "InStock" : product.isMadeToOrder ? "MadeToOrder" : "OutOfStock",
+        breadcrumb: { name: "Catálogo", path: "/catalog" },
+    });
 
     return (
         <div className="max-w-6xl mx-auto">

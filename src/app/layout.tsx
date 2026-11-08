@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SITE_URL } from "@/lib/seo";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -14,23 +15,22 @@ const geistMono = Geist_Mono({
 	subsets: ["latin"],
 });
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://projaska.com";
 
 export const metadata: Metadata = {
-	metadataBase: new URL(BASE_URL),
+	metadataBase: new URL(SITE_URL),
 	title: {
 		template: "%s | Projaska",
-		default: "Projaska — Tecnología y Seguridad",
+		default: "Projaska — Cámaras de seguridad, alarmas y cerraduras",
 	},
-	description: "Tienda online de tecnología y seguridad para profesionales. Cámaras, alarmas, cerraduras y más con envío a todo el país.",
-	keywords: ["tecnología", "seguridad", "cámaras", "alarmas", "cerraduras", "domótica", "Projaska"],
+	description: "Cámaras de seguridad, alarmas, cerraduras inteligentes y kits listos para instalar. Stock real, asesoramiento técnico e instalación. Envíos a todo el país.",
 	authors: [{ name: "Projaska" }],
 	creator: "Projaska",
-	robots: { index: true, follow: true },
+	robots: { index: true, follow: true, googleBot: { "max-image-preview": "large", "max-snippet": -1 } },
+	...(process.env.GOOGLE_SITE_VERIFICATION && { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }),
 	openGraph: {
 		type: "website",
 		locale: "es_AR",
-		url: BASE_URL,
+		url: SITE_URL,
 		siteName: "Projaska",
 		title: "Projaska — Tecnología y Seguridad",
 		description: "Tienda online de tecnología y seguridad para profesionales. Cámaras, alarmas, cerraduras y más.",
@@ -59,7 +59,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html
-			lang="es"
+			lang="es-AR"
 			className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
 			suppressHydrationWarning
 		>

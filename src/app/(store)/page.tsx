@@ -1,27 +1,18 @@
 import { jsonLdHtml } from "@/lib/utils";
+import { siteJsonLd } from "@/lib/seo";
 import { getBestSellerIds, getStoreProducts } from "@/actions/store/products.actions";
 import { getStoreKits } from "@/actions/store/kits.actions";
 import { StoreHome } from "@/components/store/store-home";
 
 export const metadata = {
-    title: "Tecnología y seguridad",
-    description: "Explorá nuestro catálogo de tecnología y seguridad: cámaras, alarmas, cerraduras inteligentes, domótica y accesorios. Precios en pesos argentinos.",
+    title: { absolute: "Projaska — Cámaras de seguridad, alarmas y cerraduras" },
+    description: "Cámaras de seguridad, alarmas, cerraduras inteligentes y kits listos para instalar. Stock real, precios en pesos, asesoramiento técnico e instalación. Envíos a todo el país.",
     openGraph: {
-        title: "Catálogo | Projaska",
-        description: "Tecnología y seguridad para profesionales. Cámaras, alarmas, cerraduras y más.",
+        title: "Projaska — Cámaras de seguridad, alarmas y cerraduras",
+        description: "Kits listos para instalar, stock real y asesoramiento técnico. Envíos a todo el país.",
         url: "/",
     },
     alternates: { canonical: "/" },
-};
-
-const orgJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "Projaska",
-    url: process.env.NEXT_PUBLIC_BASE_URL ?? "https://projaska.com",
-    logo: `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://projaska.com"}/icon-512.png`,
-    description: "Tienda online de tecnología y seguridad para profesionales.",
-    sameAs: [],
 };
 
 export default async function StorePage() {
@@ -50,7 +41,7 @@ export default async function StorePage() {
         <>
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: jsonLdHtml(orgJsonLd) }}
+                dangerouslySetInnerHTML={{ __html: jsonLdHtml(siteJsonLd) }}
             />
             <StoreHome
                 products={products}

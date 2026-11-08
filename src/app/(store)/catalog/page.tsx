@@ -3,8 +3,8 @@ import { getStoreKits } from "@/actions/store/kits.actions";
 import { Catalog } from "@/components/store/catalog";
 
 export const metadata = {
-    title: "Catálogo",
-    description: "Catálogo completo de tecnología y seguridad: cámaras, alarmas, cerraduras inteligentes, domótica, kits y accesorios. Precios en pesos argentinos.",
+    title: "Catálogo de cámaras, alarmas y cerraduras",
+    description: "Catálogo completo de seguridad: cámaras, grabadores, alarmas, cerraduras inteligentes, kits y accesorios. Precios en pesos y stock real.",
     openGraph: {
         title: "Catálogo | Projaska",
         description: "Cámaras, alarmas, cerraduras, kits armados y accesorios con stock real.",

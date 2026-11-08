@@ -5,13 +5,13 @@ import { fmtArs, fmtUsd, jsonLdHtml } from "@/lib/utils";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { metaDescription, productJsonLd } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const kit = await getStoreKit(id);
     if (!kit) return { title: "Kit no encontrado" };
-    const description = kit.description
-        ?? `Comprá el kit ${kit.name} en Projaska — tecnología y seguridad para profesionales.`;
+    const description = metaDescription(kit.description ?? `Comprá el kit ${kit.name} en Projaska — tecnología y seguridad para profesionales.`);
     return {
         title: kit.name,
         description,
@@ -37,20 +37,16 @@ export default async function KitDetailPage({ params }: { params: Promise<{ id: 
     const kit = await getStoreKit(id);
     if (!kit) notFound();
 
-    const jsonLd = {
-        "@context": "https://schema.org/",
-        "@type": "Product",
+    const jsonLd = productJsonLd({
         name: kit.name,
-        description: kit.description ?? undefined,
-        image: kit.imageUrl ?? undefined,
+        description: kit.description,
+        imageUrl: kit.imageUrl,
         sku: kit.sku,
-        offers: {
-            "@type": "Offer",
-            priceCurrency: "ARS",
-            price: kit.priceArs,
-            availability: "https://schema.org/InStock",
-        },
-    };
+        priceArs: kit.priceArs,
+        path: `/kits/${id}`,
+        availability: "InStock",
+        breadcrumb: { name: "Kits", path: "/catalog?cat=kits" },
+    });
 
     return (
         <div className="max-w-6xl mx-auto">

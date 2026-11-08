@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://projaska.com";
+import { SITE_URL as BASE_URL } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const [products, kits] = await Promise.all([
@@ -32,6 +31,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [
         { url: BASE_URL, changeFrequency: "daily", priority: 1 },
         { url: `${BASE_URL}/catalog`, changeFrequency: "daily", priority: 0.9 },
+        { url: `${BASE_URL}/arrepentimiento`, changeFrequency: "yearly", priority: 0.3 },
+        { url: `${BASE_URL}/terms`, changeFrequency: "yearly", priority: 0.2 },
+        { url: `${BASE_URL}/privacy`, changeFrequency: "yearly", priority: 0.2 },
         ...productUrls,
         ...kitUrls,
     ];
