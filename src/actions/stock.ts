@@ -1,6 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
+import { requireRole } from "@/lib/require-role";
+import { stockMovementSchema } from "@/lib/validations/stock";
 import { prisma } from "@/lib/prisma";
 import { StockMovementFormData } from "@/lib/validations/stock";
 import { SerializedStockMovement } from "@/types/stock";
@@ -14,6 +15,7 @@ function serializedMovement(m: any): SerializedStockMovement {
 }
 
 export async function getStockMovements(): Promise<SerializedStockMovement[]> {
+	await requireRole("ADMIN", "WAREHOUSE");
 	const movements = await prisma.stockMovement.findMany({
 		orderBy: { createdAt: "desc" },
 		include: {
@@ -26,10 +28,9 @@ export async function getStockMovements(): Promise<SerializedStockMovement[]> {
 }
 
 export async function createStockMovement(data: StockMovementFormData) {
-	const session = await auth();
-	if (!session?.user?.id) throw new Error("Unauthorized");
+	const session = await requireRole("ADMIN", "WAREHOUSE");
+	data = stockMovementSchema.parse(data);
 
-	console.log(data)
 	await prisma.$transaction(async (tx) => {
 		await tx.stockMovement.create({
 			data: {

@@ -1,5 +1,7 @@
 "use server";
 
+import { requireRole } from "@/lib/require-role";
+import { productSchema } from "@/lib/validations/product";
 import { auth } from "@/auth";
 import { Product } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -66,8 +68,8 @@ export const createProduct = async (data: {
 	isMadeToOrder?: boolean;
 	showInStore?: boolean;
 }) => {
-	const session = await auth();
-	if (!session?.user?.id) throw new Error("Unauthorized");
+	await requireRole("ADMIN", "SELLER");
+	data = productSchema.parse(data);
 	await prisma.product.create({ data });
 	revalidatePath("/products");
 };
@@ -89,8 +91,8 @@ export const updateProduct = async (
 		showInStore?: boolean;
 	},
 ) => {
-	const session = await auth();
-	if (!session?.user?.id) throw new Error("Unauthorized");
+	await requireRole("ADMIN", "SELLER");
+	data = productSchema.parse(data);
 	await prisma.product.update({
 		where: { id },
 		data,
@@ -99,8 +101,7 @@ export const updateProduct = async (
 };
 
 export async function deleteProduct(id: string) {
-	const session = await auth();
-	if (!session?.user?.id) throw new Error("Unauthorized");
+	await requireRole("ADMIN", "SELLER");
 	await prisma.product.update({
 		where: { id },
 		data: { deletedAt: new Date() },

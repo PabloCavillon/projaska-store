@@ -23,7 +23,19 @@ export const expenseSchema = z
             return d.amountArs !== undefined && d.amountArs > 0;  // SHIPPING, OTHER, ADVERTISING
         },
         { message: "Ingresá el monto correspondiente al tipo de gasto" },
-    );
+    )
+    // Sin cotización la compra se sumaría como $ 0 en los gastos en pesos
+    .refine((d) => d.type !== "PURCHASE" || (d.dollarRate !== undefined && d.dollarRate > 0), {
+        message: "Ingresá la cotización del dólar de la compra",
+        path: ["dollarRate"],
+    });
+
+export const recurringExpenseSchema = z.object({
+    type: z.enum(["SHIPPING", "OTHER", "ADVERTISING"]),
+    description: z.string().min(1),
+    amountArs: z.number().positive(),
+    notes: z.string().optional(),
+});
 
 export type ExpenseFormInput = z.input<typeof expenseSchema>;
 export type ExpenseFormData = z.output<typeof expenseSchema>;

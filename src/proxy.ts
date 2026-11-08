@@ -5,8 +5,7 @@ import { jwtVerify } from "jose";
 
 const { auth } = NextAuth(authConfig);
 
-const STORE_JWT_SECRET = new TextEncoder().encode(process.env.STORE_JWT_SECRET);
-const STORE_COOKIE_NAME = "store-token";
+import { STORE_COOKIE_NAME, storeJwtSecret } from "./lib/store-jwt";
 
 // Admin role-based route permissions (paths under /admin)
 const ROLE_ROUTES: Record<string, string[]> = {
@@ -29,7 +28,7 @@ const STORE_LOGIN_PAGE = "/login";
 
 async function verifyStoreToken(token: string): Promise<boolean> {
 	try {
-		await jwtVerify(token, STORE_JWT_SECRET);
+		await jwtVerify(token, storeJwtSecret());
 		return true;
 	} catch {
 		return false;

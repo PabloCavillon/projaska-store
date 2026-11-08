@@ -3,8 +3,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const SECRET = new TextEncoder().encode(process.env.STORE_JWT_SECRET);
-const COOKIE_NAME = "store-token";
+import { STORE_COOKIE_NAME as COOKIE_NAME, storeJwtSecret } from "./store-jwt";
 const EXPIRES_IN = "7d";
 
 export type StoreSession = {
@@ -17,7 +16,7 @@ export async function createStoreSession(payload: StoreSession) {
 	const token = await new SignJWT(payload)
 		.setProtectedHeader({ alg: "HS256" })
 		.setExpirationTime(EXPIRES_IN)
-		.sign(SECRET);
+		.sign(storeJwtSecret());
 
 	const cookieStore = await cookies();
 	cookieStore.set(COOKIE_NAME, token, {
@@ -35,7 +34,7 @@ export async function getStoreSession(): Promise<StoreSession | null> {
 	if (!token) return null;
 
 	try {
-		const { payload } = await jwtVerify<StoreSession>(token, SECRET);
+		const { payload } = await jwtVerify<StoreSession>(token, storeJwtSecret());
 		return payload as StoreSession;
 	} catch {
 		return null;

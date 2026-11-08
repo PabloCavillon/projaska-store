@@ -1,5 +1,7 @@
 "use server";
 
+import { requireRole } from "@/lib/require-role";
+import { orderSchema } from "@/lib/validations/order";
 import { auth } from "@/auth";
 import { OrderStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
@@ -67,8 +69,8 @@ export async function getOrder(id: string): Promise<SerializedOrder | null> {
 }
 
 export async function createOrder(data: OrderFormData) {
-	const session = await auth();
-	if (!session?.user?.id) throw new Error("Unauthorized");
+	const session = await requireRole("ADMIN", "SELLER");
+	data = orderSchema.parse(data);
 
 	const total = data.items.reduce(
 		(acc, item) => acc + item.unitPrice * item.quantity,
@@ -95,8 +97,7 @@ export async function createOrder(data: OrderFormData) {
 }
 
 export async function updateOrderStatus(id: string, status: OrderStatus) {
-	const session = await auth();
-	if (!session?.user?.id) throw new Error("Unauthorized");
+	const session = await requireRole("ADMIN", "SELLER", "WAREHOUSE");
 
 	const order = await prisma.order.findUnique({
 		where: { id },
@@ -107,6 +108,9 @@ export async function updateOrderStatus(id: string, status: OrderStatus) {
 
 	if (status === "CONFIRMED" && order.status === "PENDING") {
 		await prisma.$transaction(async (tx) => {
+			// Cambiar el estado primero y solo si sigue PENDING: un doble clic no descuenta dos veces
+			const claimed = await tx.order.updateMany({ where: { id, status: "PENDING" }, data: { status } });
+			if (claimed.count === 0) return;
 			for (const item of order.items) {
 				await tx.product.update({
 					where: { id: item.productId },
@@ -124,11 +128,6 @@ export async function updateOrderStatus(id: string, status: OrderStatus) {
 					},
 				});
 			}
-
-			await tx.order.update({
-				where: { id },
-				data: { status },
-			});
 		});
 	} else {
 		await prisma.order.update({

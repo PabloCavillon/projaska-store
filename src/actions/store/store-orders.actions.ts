@@ -1,11 +1,14 @@
 "use server";
 
+import { requireRole } from "@/lib/require-role";
 import { prisma } from "@/lib/prisma";
 import { getPriceConfig } from "@/actions/config";
 import { getStoreSession } from "@/lib/store-auth";
-import { calcPriceArs, calcDiscount } from "@/lib/price-utils";
+import { calcPriceArs, calcDiscount, priceOf, type SaleUnit } from "@/lib/price-utils";
+import { checkoutItemsSchema } from "@/lib/validations/store-order";
 import { customAlphabet } from "nanoid";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { auth } from "@/auth";
 import { StoreOrderStatus } from "@/generated/prisma/enums";
 import { sendPushToAdminsAndSellers } from "@/lib/web-push";
@@ -40,9 +43,14 @@ async function getKitLeafProducts(kitId: string, qty: number): Promise<Map<strin
     return result;
 }
 
-export async function createStoreOrder(items: CheckoutItem[]): Promise<CheckoutResult> {
+export async function createStoreOrder(rawItems: CheckoutItem[]): Promise<CheckoutResult> {
     const session = await getStoreSession();
     if (!session) return { error: "Debés iniciar sesión para hacer un pedido." };
+
+    // Lo que llega del navegador no es confiable: cantidades enteras y positivas, producto o kit.
+    const parsed = checkoutItemsSchema.safeParse(rawItems);
+    if (!parsed.success) return { error: "El carrito tiene datos inválidos. Revisá las cantidades." };
+    const items = parsed.data;
     if (!items.length) return { error: "El carrito está vacío." };
 
     const config = await getPriceConfig();
@@ -51,18 +59,32 @@ export async function createStoreOrder(items: CheckoutItem[]): Promise<CheckoutR
     const productItems = items.filter((i) => i.productId);
     const kitItems = items.filter((i) => i.kitId);
 
-    // --- Validate & price products ---
+    // --- Validate & price products (precio, caja y oferta salen de la base, no del navegador) ---
     const products = productItems.length
         ? await prisma.product.findMany({
             where: { id: { in: productItems.map((i) => i.productId!) }, deletedAt: null },
-            select: { id: true, price: true, stock: true },
+            select: { id: true, price: true, unitsPerBox: true, offerDiscountPct: true, offerUnit: true },
         })
         : [];
     const productMap = Object.fromEntries(products.map((p) => [p.id, p]));
 
+    // Unidad y caja del mismo producto se guardan como una sola línea en unidades (StoreOrderItem es único por producto)
+    const productLines = new Map<string, { units: number; usd: number; ars: number }>();
     for (const item of productItems) {
         const p = productMap[item.productId!];
         if (!p) return { error: "Producto no encontrado." };
+        const price = priceOf({
+            priceUsd: Number(p.price),
+            unitsPerBox: p.unitsPerBox,
+            offerDiscountPct: p.offerDiscountPct !== null ? Number(p.offerDiscountPct) : null,
+            offerUnit: (p.offerUnit as SaleUnit | null) ?? null,
+        }, item.unit);
+        if (!price) return { error: "Ese producto ya no se vende por caja. Cambialo a unidades en el carrito." };
+        const line = productLines.get(p.id) ?? { units: 0, usd: 0, ars: 0 };
+        line.units += price.units * item.quantity;
+        line.usd += price.usd * item.quantity;
+        line.ars += calcPriceArs(price.usd, config) * item.quantity;
+        productLines.set(p.id, line);
     }
 
     // --- Validate & price kits ---
@@ -74,23 +96,23 @@ export async function createStoreOrder(items: CheckoutItem[]): Promise<CheckoutR
         : [];
     const kitMap = Object.fromEntries(kits.map((k) => [k.id, k]));
 
+    const kitLines = new Map<string, number>();
     for (const item of kitItems) {
         if (!kitMap[item.kitId!]) return { error: "Kit no encontrado." };
+        kitLines.set(item.kitId!, (kitLines.get(item.kitId!) ?? 0) + item.quantity);
     }
 
     // --- Totals ---
     let subtotalUsd = 0;
     let subtotalArs = 0;
-
-    for (const item of productItems) {
-        const priceUsd = Number(productMap[item.productId!].price);
-        subtotalUsd += priceUsd * item.quantity;
-        subtotalArs += calcPriceArs(priceUsd, config) * item.quantity;
+    for (const line of productLines.values()) {
+        subtotalUsd += line.usd;
+        subtotalArs += line.ars;
     }
-    for (const item of kitItems) {
-        const priceUsd = Number(kitMap[item.kitId!].price);
-        subtotalUsd += priceUsd * item.quantity;
-        subtotalArs += calcPriceArs(priceUsd, config) * item.quantity;
+    for (const [kitId, qty] of kitLines) {
+        const priceUsd = Number(kitMap[kitId].price);
+        subtotalUsd += priceUsd * qty;
+        subtotalArs += calcPriceArs(priceUsd, config) * qty;
     }
 
     // --- Discount ---
@@ -115,26 +137,30 @@ export async function createStoreOrder(items: CheckoutItem[]): Promise<CheckoutR
             discountType,
             items: {
                 create: [
-                    ...productItems.map((item) => ({
-                        productId: item.productId!,
-                        quantity: item.quantity,
-                        unitPriceUsd: Number(productMap[item.productId!].price),
+                    // quantity siempre en unidades; unitPriceUsd = promedio por unidad (caja y oferta incluidas)
+                    ...[...productLines].map(([productId, line]) => ({
+                        productId,
+                        quantity: line.units,
+                        unitPriceUsd: line.usd / line.units,
                     })),
-                    ...kitItems.map((item) => ({
-                        kitId: item.kitId!,
-                        quantity: item.quantity,
-                        unitPriceUsd: Number(kitMap[item.kitId!].price),
+                    ...[...kitLines].map(([kitId, qty]) => ({
+                        kitId,
+                        quantity: qty,
+                        unitPriceUsd: Number(kitMap[kitId].price),
                     })),
                 ],
             },
         },
     });
 
-    sendPushToAdminsAndSellers({
-        title: "Nuevo pedido en tienda",
-        body: `${session.name} realizó el pedido ${code}`,
-        url: `/admin/store-orders/${order.id}`,
-    }).catch(() => {});
+    // after(): en Vercel la función puede cortarse al responder; esto garantiza que el aviso salga
+    after(() =>
+        sendPushToAdminsAndSellers({
+            title: "Nuevo pedido en tienda",
+            body: `${session.name} realizó el pedido ${code}`,
+            url: `/admin/store-orders/${order.id}`,
+        }).catch(() => {}),
+    );
 
     revalidatePath("/orders");
     return { code };
@@ -202,30 +228,7 @@ const orderInclude = {
 
 // ─── ADMIN ───────────────────────────────────────────────────────────────────
 
-export type AdminStoreOrder = {
-    id: string;
-    code: string;
-    status: string;
-    customerName: string;
-    subtotalUsd: number;
-    discountApplied: number;
-    discountType: string | null;
-    dollarRateAtCreation: number;
-    totalArs: number | null;
-    notes: string | null;
-    createdAt: string;
-    items: {
-        id: string;
-        productId: string | null;
-        productName: string | null;
-        productSku: string | null;
-        kitId: string | null;
-        kitName: string | null;
-        kitSku: string | null;
-        quantity: number;
-        unitPriceUsd: number;
-    }[];
-};
+export type AdminStoreOrder = SerializedStoreOrder & { customerName: string };
 
 export async function getAdminStoreOrders(): Promise<AdminStoreOrder[]> {
     const session = await auth();
@@ -245,30 +248,7 @@ export async function getAdminStoreOrders(): Promise<AdminStoreOrder[]> {
         },
     });
 
-    return orders.map((o) => ({
-        id: o.id,
-        code: o.code,
-        status: o.status,
-        customerName: o.storeCustomer.name,
-        subtotalUsd: Number(o.subtotalUsd),
-        discountApplied: Number(o.discountApplied),
-        discountType: o.discountType,
-        dollarRateAtCreation: Number(o.dollarRateAtCreation),
-        totalArs: o.totalArs !== null ? Number(o.totalArs) : null,
-        notes: o.notes,
-        createdAt: o.createdAt.toISOString(),
-        items: o.items.map((i) => ({
-            id: i.id,
-            productId: i.productId,
-            productName: i.product?.name ?? null,
-            productSku: i.product?.sku ?? null,
-            kitId: i.kitId,
-            kitName: i.kit?.name ?? null,
-            kitSku: i.kit?.sku ?? null,
-            quantity: i.quantity,
-            unitPriceUsd: Number(i.unitPriceUsd),
-        })),
-    }));
+    return orders.map((o) => ({ ...serializeOrder(o), customerName: o.storeCustomer.name }));
 }
 
 export async function getAdminStoreOrder(id: string): Promise<AdminStoreOrder | null> {
@@ -288,35 +268,11 @@ export async function getAdminStoreOrder(id: string): Promise<AdminStoreOrder | 
         },
     });
     if (!order) return null;
-    return {
-        id: order.id,
-        code: order.code,
-        status: order.status,
-        customerName: order.storeCustomer.name,
-        subtotalUsd: Number(order.subtotalUsd),
-        discountApplied: Number(order.discountApplied),
-        discountType: order.discountType,
-        dollarRateAtCreation: Number(order.dollarRateAtCreation),
-        totalArs: order.totalArs !== null ? Number(order.totalArs) : null,
-        notes: order.notes,
-        createdAt: order.createdAt.toISOString(),
-        items: order.items.map((i) => ({
-            id: i.id,
-            productId: i.productId,
-            productName: i.product?.name ?? null,
-            productSku: i.product?.sku ?? null,
-            kitId: i.kitId,
-            kitName: i.kit?.name ?? null,
-            kitSku: i.kit?.sku ?? null,
-            quantity: i.quantity,
-            unitPriceUsd: Number(i.unitPriceUsd),
-        })),
-    };
+    return { ...serializeOrder(order), customerName: order.storeCustomer.name };
 }
 
 export async function updateStoreOrderStatusAdmin(id: string, status: StoreOrderStatus) {
-    const session = await auth();
-    if (!session?.user?.id) throw new Error("Unauthorized");
+    const session = await requireRole("ADMIN", "SELLER", "WAREHOUSE");
 
     const order = await prisma.storeOrder.findUnique({
         where: { id },
@@ -334,6 +290,12 @@ export async function updateStoreOrderStatusAdmin(id: string, status: StoreOrder
 
     if (isConfirming) {
         await prisma.$transaction(async (tx) => {
+            // Cambiar el estado primero y solo si sigue sin confirmar: un doble clic no descuenta dos veces
+            const claimed = await tx.storeOrder.updateMany({
+                where: { id, status: { in: [StoreOrderStatus.PENDING, StoreOrderStatus.PAYMENT_REGISTERED] } },
+                data: { status },
+            });
+            if (claimed.count === 0) return;
             for (const item of order.items) {
                 if (item.productId) {
                     // Productos por encargo no tienen stock real — no decrementar
@@ -370,7 +332,6 @@ export async function updateStoreOrderStatusAdmin(id: string, status: StoreOrder
                     }
                 }
             }
-            await tx.storeOrder.update({ where: { id }, data: { status } });
         });
     } else {
         await prisma.storeOrder.update({ where: { id }, data: { status } });

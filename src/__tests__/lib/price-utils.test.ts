@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcPriceArs, calcDiscount } from "@/lib/price-utils";
+import { calcPriceArs, calcDiscount, priceOf } from "@/lib/price-utils";
 
 const base = { dollarRate: 1000, shippingPct: 10, profitPct: 20 };
 
@@ -59,5 +59,24 @@ describe("calcDiscount", () => {
         const d = calcDiscount(600_000, cfg, true);
         expect(d.type).toBe("GUILD");
         expect(d.pct).toBe(15);
+    });
+});
+
+describe("priceOf", () => {
+    const p = { priceUsd: 10, unitsPerBox: 12, offerDiscountPct: null, offerUnit: null } as const;
+
+    it("una caja trae unitsPerBox unidades al precio de todas", () => {
+        expect(priceOf(p, "box")).toEqual({ usd: 120, units: 12, isOffer: false });
+    });
+
+    it("la oferta por caja descuenta sobre la caja entera, no sobre una unidad", () => {
+        const o = priceOf({ ...p, offerDiscountPct: 10, offerUnit: "box" }, "box")!;
+        expect(o.usd).toBeCloseTo(108);
+        expect(o.isOffer).toBe(true);
+        expect(priceOf({ ...p, offerDiscountPct: 10, offerUnit: "box" }, "unit")!.usd).toBe(10);
+    });
+
+    it("sin unitsPerBox no se vende por caja", () => {
+        expect(priceOf({ ...p, unitsPerBox: null }, "box")).toBeNull();
     });
 });

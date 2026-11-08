@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getPriceConfig } from "@/actions/config";
-import { calcPriceArs, type PriceInfo } from "@/lib/price-utils";
+import { calcPriceArs, priceOf, type PriceInfo, type SaleUnit } from "@/lib/price-utils";
 
 export type StoreProduct = {
     id: string;
@@ -41,8 +41,10 @@ function mapProduct(p: {
     const offerDiscountPct = p.offerDiscountPct !== null && p.offerDiscountPct !== undefined
         ? (typeof p.offerDiscountPct === "object" ? p.offerDiscountPct.toNumber() : Number(p.offerDiscountPct))
         : null;
-    const offerPriceUsd = offerDiscountPct !== null
-        ? priceUsd * (1 - offerDiscountPct / 100)
+    const offerUnit = (p.offerUnit as SaleUnit | null) ?? null;
+    // Precio de la presentación en oferta (unidad o caja entera), con la misma regla que cobra el servidor
+    const offerPriceUsd = offerDiscountPct !== null && offerUnit
+        ? priceOf({ priceUsd, unitsPerBox: p.unitsPerBox, offerDiscountPct, offerUnit }, offerUnit)?.usd ?? null
         : null;
     return {
         id: p.id, sku: p.sku, name: p.name, description: p.description,
@@ -53,7 +55,7 @@ function mapProduct(p: {
         offerDiscountPct,
         offerPriceUsd,
         offerPriceArs: offerPriceUsd !== null ? Math.round(calcPriceArs(offerPriceUsd, priceInfo)) : null,
-        offerUnit: (p.offerUnit as "unit" | "box" | null) ?? null,
+        offerUnit,
         isMadeToOrder: p.isMadeToOrder,
     };
 }

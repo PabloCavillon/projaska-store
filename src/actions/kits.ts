@@ -1,6 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
+import { requireRole } from "@/lib/require-role";
+import { kitSchema } from "@/lib/validations/kit";
 import { prisma } from "@/lib/prisma";
 import { KitFormData } from "@/lib/validations/kit";
 import { SerializedKit, SerializedKitItem } from "@/types/kit";
@@ -48,6 +49,7 @@ const itemInclude = {
 } as const;
 
 export async function getKits(): Promise<SerializedKit[]> {
+    await requireRole("ADMIN", "SELLER");
     const kits = await prisma.kit.findMany({
         where: { deletedAt: null },
         orderBy: { createdAt: "desc" },
@@ -57,6 +59,7 @@ export async function getKits(): Promise<SerializedKit[]> {
 }
 
 export async function getKit(id: string): Promise<SerializedKit | null> {
+    await requireRole("ADMIN", "SELLER");
     const kit = await prisma.kit.findUnique({
         where: { id, deletedAt: null },
         include: { items: { include: itemInclude } },
@@ -66,8 +69,8 @@ export async function getKit(id: string): Promise<SerializedKit | null> {
 }
 
 export async function createKit(data: KitFormData) {
-    const session = await auth();
-    if (!session?.user?.id) throw new Error("Unauthorized");
+    await requireRole("ADMIN", "SELLER");
+    data = kitSchema.parse(data);
 
     const { items, ...kitData } = data;
     await prisma.kit.create({
@@ -86,8 +89,8 @@ export async function createKit(data: KitFormData) {
 }
 
 export async function updateKit(id: string, data: KitFormData) {
-    const session = await auth();
-    if (!session?.user?.id) throw new Error("Unauthorized");
+    await requireRole("ADMIN", "SELLER");
+    data = kitSchema.parse(data);
 
     const { items, ...kitData } = data;
     await prisma.$transaction([
@@ -111,32 +114,10 @@ export async function updateKit(id: string, data: KitFormData) {
 }
 
 export async function deleteKit(id: string) {
-    const session = await auth();
-    if (!session?.user?.id) throw new Error("Unauthorized");
+    await requireRole("ADMIN", "SELLER");
     await prisma.kit.update({
         where: { id },
         data: { deletedAt: new Date() },
     });
     revalidatePath("/kits");
-}
-
-/**
- * Recursively deducts stock from all component products in a kit.
- * Called when a store order containing a kit is confirmed.
- */
-export async function deductKitStock(kitId: string, qty: number): Promise<void> {
-    const items = await prisma.kitItem.findMany({
-        where: { kitId },
-    });
-    for (const item of items) {
-        const total = item.quantity * qty;
-        if (item.productId) {
-            await prisma.product.update({
-                where: { id: item.productId },
-                data: { stock: { decrement: total } },
-            });
-        } else if (item.childKitId) {
-            await deductKitStock(item.childKitId, total);
-        }
-    }
 }

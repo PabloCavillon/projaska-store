@@ -1,5 +1,7 @@
 "use server";
 
+import { requireRole } from "@/lib/require-role";
+import { customerSchema } from "@/lib/validations/customer";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { SerializedCustomer } from "@/types/customer";
@@ -45,8 +47,8 @@ export const createCustomer = async (data: {
 	notes?: string;
 	isGuild?: boolean;
 }) => {
-	const session = await auth();
-	if (!session?.user?.id) throw new Error("Unauthorized");
+	await requireRole("ADMIN", "SELLER");
+	data = customerSchema.parse(data);
 	await prisma.customer.create({ data });
 	revalidatePath("/customers");
 };
@@ -62,8 +64,8 @@ export const updateCustomer = async (
 		isGuild?: boolean;
 	},
 ) => {
-	const session = await auth();
-	if (!session?.user?.id) throw new Error("Unauthorized");
+	await requireRole("ADMIN", "SELLER");
+	data = customerSchema.parse(data);
 
 	await prisma.$transaction(async (tx) => {
 		await tx.customer.update({ where: { id }, data });
@@ -84,8 +86,7 @@ export const updateCustomer = async (
 };
 
 export const deleteCustomer = async (id: string) => {
-	const session = await auth();
-	if (!session?.user?.id) throw new Error("Unauthorized");
+	await requireRole("ADMIN", "SELLER");
 	await prisma.customer.update({
 		where: { id },
 		data: { deletedAt: new Date() },

@@ -9,7 +9,12 @@ export const orderItemSchema = z.object({
 export const orderSchema = z.object({
 	customerId: z.string().min(1, "El cliente es requerido"),
 	notes: z.string().optional(),
-	items: z.array(orderItemSchema).min(1, "Al menos 1 producto es requerido."),
+	items: z
+		.array(orderItemSchema)
+		.min(1, "Al menos 1 producto es requerido.")
+		.refine((items) => new Set(items.map((i) => i.productId)).size === items.length, {
+			message: "Hay un producto repetido: sumá las cantidades en una sola línea.",
+		}),
 });
 
 export type OrderFormInput = z.input<typeof orderSchema>;

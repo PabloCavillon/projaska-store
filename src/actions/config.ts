@@ -1,6 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
+import { requireRole } from "@/lib/require-role";
+import { priceConfigSchema } from "@/lib/validations/config";
 import { prisma } from "@/lib/prisma";
 import { PriceConfigFormData } from "@/lib/validations/config";
 import { revalidatePath } from "next/cache";
@@ -57,8 +58,8 @@ export async function getPriceConfig(): Promise<SerializedPriceConfig | null> {
 }
 
 export async function updatePriceConfig(data: PriceConfigFormData) {
-	const session = await auth();
-	if (!session?.user?.id) throw new Error("Unauthorized");
+	const session = await requireRole("ADMIN");
+	data = priceConfigSchema.parse(data);
 	if (session.user.role !== "ADMIN") throw new Error("Forbidden");
 
 	const existing = await prisma.priceConfig.findFirst();

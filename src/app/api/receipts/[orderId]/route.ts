@@ -1,6 +1,7 @@
 export const runtime = "nodejs";
 
 import { getOrder } from "@/actions/orders";
+import { auth } from "@/auth";
 import { Document } from "@react-pdf/renderer";
 import { NextRequest, NextResponse } from "next/server";
 import React from "react";
@@ -12,6 +13,9 @@ export async function GET(
 	{ params }: { params: Promise<{ orderId: string }> },
 ) {
 	const { orderId } = await params;
+
+	const session = await auth();
+	if (!session?.user?.id) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
 	const order = await getOrder(orderId);
 

@@ -3,11 +3,11 @@
 import { hash } from "bcryptjs";
 import { revalidatePath } from "next/cache";
 
-import { auth } from "@/auth";
+import { requireRole } from "@/lib/require-role";
 import { prisma } from "@/lib/prisma";
 import { SerializedUser } from "@/types/user";
 import { Prisma } from "@/generated/prisma/client";
-import { CreateUserFormData, UserFormData } from "@/lib/validations/user";
+import { CreateUserFormData, UserFormData, createUserSchema, userSchema } from "@/lib/validations/user";
 
 function serialize(u: any): SerializedUser {
 	return {
@@ -18,11 +18,7 @@ function serialize(u: any): SerializedUser {
 	};
 }
 
-async function requireAdmin() {
-	const session = await auth();
-	if (!session?.user?.id) throw new Error("Unauthorized");
-	if (session.user.role !== "ADMIN") throw new Error("Forbidden");
-}
+const requireAdmin = () => requireRole("ADMIN");
 
 export async function getUsers(): Promise<SerializedUser[]> {
 	await requireAdmin();
@@ -44,6 +40,7 @@ export async function getUser(id: string): Promise<SerializedUser | null> {
 
 export async function createUser(data: CreateUserFormData) {
   await requireAdmin()
+  data = createUserSchema.parse(data) as CreateUserFormData
   try {
     await prisma.user.create({
       data: {
@@ -63,6 +60,7 @@ export async function createUser(data: CreateUserFormData) {
 
 export async function updateUser(id: string, data: UserFormData) {
 	await requireAdmin();
+	data = userSchema.parse(data);
 	const updateData: any = {
 		username: data.username,
 		role: data.role,

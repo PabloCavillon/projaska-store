@@ -60,14 +60,20 @@ describe("customerSchema", () => {
 // ── expenseSchema ─────────────────────────────────────────────────────────────
 
 describe("expenseSchema", () => {
-    it("acepta gasto PURCHASE con amountUsd", () => {
+    it("acepta gasto PURCHASE con amountUsd y cotización", () => {
         const result = expenseSchema.safeParse({
             type: "PURCHASE",
             description: "Compra de stock",
             amountUsd: 500,
+            dollarRate: 1400,
             date: "2025-01-01",
         });
         expect(result.success).toBe(true);
+    });
+
+    it("rechaza PURCHASE sin cotización (sumaría $ 0 en pesos)", () => {
+        const result = expenseSchema.safeParse({ type: "PURCHASE", description: "Compra", amountUsd: 500, date: "2025-01-01" });
+        expect(result.success).toBe(false);
     });
 
     it("rechaza PURCHASE sin amountUsd", () => {

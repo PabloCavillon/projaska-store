@@ -23,6 +23,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         return NextResponse.json({ error: "Invalid file type" }, { status: 400 });
     }
 
-    const blob = await put(file.name, file, { access: "public" });
+    // Sufijo al azar: dos fotos "IMG_0001.jpg" no chocan
+    const blob = await put(file.name, file, { access: "public", addRandomSuffix: true });
     return NextResponse.json({ url: blob.url });
 }

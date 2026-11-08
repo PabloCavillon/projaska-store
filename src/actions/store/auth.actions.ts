@@ -17,7 +17,7 @@ export async function loginStoreCustomer(
 	data: LoginFormData,
 ): Promise<{ error: string } | { redirectTo: string }> {
 	const customer = await prisma.storeCustomer.findUnique({
-		where: { email: data.email, deletedAt: null },
+		where: { email: data.email.toLowerCase().trim(), deletedAt: null },
 	});
 
 	if (!customer) return { error: "Email o contraseña incorrectos." };

@@ -1,5 +1,7 @@
 "use server";
 
+import { requireRole } from "@/lib/require-role";
+import { expenseSchema, recurringExpenseSchema } from "@/lib/validations/expense";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { ExpenseFormData } from "@/lib/validations/expense";
@@ -22,6 +24,7 @@ function serialize(e: any): SerializedExpense {
 }
 
 export async function getExpenses(): Promise<SerializedExpense[]> {
+    await requireRole("ADMIN", "SELLER");
     const expenses = await prisma.expense.findMany({
         orderBy: { date: "desc" },
         include: { user: { select: { username: true } } },
@@ -30,8 +33,8 @@ export async function getExpenses(): Promise<SerializedExpense[]> {
 }
 
 export async function createExpense(data: ExpenseFormData) {
-    const session = await auth();
-    if (!session?.user?.id) throw new Error("Unauthorized");
+    const session = await requireRole("ADMIN", "SELLER");
+    data = expenseSchema.parse(data);
 
     await prisma.expense.create({
         data: {
@@ -67,6 +70,7 @@ export type ExpenseSummary = {
 };
 
 export async function getExpenseSummary(): Promise<ExpenseSummary> {
+    await requireRole("ADMIN", "SELLER", "WATCHER");
     const expenses = await prisma.expense.findMany({
         select: { type: true, amountUsd: true, amountArs: true, dollarRate: true },
     });
@@ -104,6 +108,7 @@ export async function getExpenseSummary(): Promise<ExpenseSummary> {
 // ─── GASTOS RECURRENTES ───────────────────────────────────────────────────────
 
 export async function getRecurringExpenses(): Promise<SerializedRecurringExpense[]> {
+    await requireRole("ADMIN", "SELLER");
     const items = await prisma.recurringExpense.findMany({
         orderBy: { createdAt: "asc" },
         include: { user: { select: { username: true } } },
@@ -124,8 +129,8 @@ export async function createRecurringExpense(data: {
     amountArs: number;
     notes?: string;
 }) {
-    const session = await auth();
-    if (!session?.user?.id) throw new Error("Unauthorized");
+    const session = await requireRole("ADMIN", "SELLER");
+    data = recurringExpenseSchema.parse(data);
 
     await prisma.recurringExpense.create({
         data: {
@@ -148,8 +153,7 @@ export async function deleteRecurringExpense(id: string) {
 }
 
 export async function registerRecurringExpense(id: string) {
-    const session = await auth();
-    if (!session?.user?.id) throw new Error("Unauthorized");
+    const session = await requireRole("ADMIN", "SELLER");
 
     const recurring = await prisma.recurringExpense.findUniqueOrThrow({ where: { id } });
 
