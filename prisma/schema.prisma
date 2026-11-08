@@ -88,6 +88,7 @@ model Customer {
 model Product {
   id            String    @id @default(uuid())
   sku           String    @unique
+  model         String?   // modelo del fabricante: clave para cruzar con listas de proveedores
   name          String
   description   String?
   imageUrl      String?
@@ -108,6 +109,23 @@ model Product {
   kitItems        KitItem[]
   promoProducts   PromoProduct[]
   storeOrderItems StoreOrderItem[]
+  syncLogs        ProductSyncLog[]
+
+  @@index([model])
+}
+
+// Historial de cambios hechos por la sincronización de precios (n8n)
+model ProductSyncLog {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  field     String   // "price" | "sku" | "description"
+  oldValue  String?
+  newValue  String?
+  source    String
+  createdAt DateTime @default(now())
+
+  @@index([productId])
 }
 
 model Order {
