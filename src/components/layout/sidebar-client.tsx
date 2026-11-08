@@ -19,12 +19,14 @@ import {
     Settings,
     Receipt,
     Boxes,
+    Undo2,
 } from "lucide-react";
 import { PushSubscribeButton } from "@/components/layout/push-subscribe-button";
 
 const navigation = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard, roles: ["ADMIN", "SELLER", "WATCHER"] },
     { label: "Órdenes", href: "/admin/orders", icon: ScrollText, roles: ["ADMIN", "SELLER", "WAREHOUSE"] },
+    { label: "Arrepentimientos", href: "/admin/arrepentimientos", icon: Undo2, roles: ["ADMIN", "SELLER"] },
     { label: "Productos", href: "/admin/products", icon: Package, roles: ["ADMIN", "SELLER"] },
     { label: "Clientes", href: "/admin/customers", icon: UserCircle, roles: ["ADMIN", "SELLER"] },
     { label: "Stock", href: "/admin/stock", icon: Database, roles: ["ADMIN"] },

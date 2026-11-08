@@ -355,3 +355,17 @@ model PushSubscription {
 
   @@index([userId])
 }
+
+// ─── BOTÓN DE ARREPENTIMIENTO (Res. SCI 424/2020) ─────────────────────────────
+// Formulario público: no exige cuenta. code es el comprobante que se le muestra al consumidor.
+
+model RevocationRequest {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  orderCode String
+  name      String
+  email     String
+  phone     String?
+  reason    String?
+  createdAt DateTime @default(now())
+}

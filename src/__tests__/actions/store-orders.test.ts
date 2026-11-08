@@ -29,7 +29,7 @@ import { createStoreOrder, updateStoreOrderStatusAdmin } from "@/actions/store/s
 beforeEach(() => {
     vi.clearAllMocks();
     db.kit.findMany.mockResolvedValue([]);
-    db.storeCustomer.findUnique.mockResolvedValue(null);
+    db.storeCustomer.findUnique.mockResolvedValue({ id: "c1", customer: null });
     db.storeOrder.create.mockResolvedValue({ id: "o1" });
     db.product.findMany.mockResolvedValue([
         { id: "p1", price: 10, unitsPerBox: 12, offerDiscountPct: null, offerUnit: null },

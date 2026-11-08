@@ -48,6 +48,17 @@ describe("GET /api/price-sync/products", () => {
     });
 });
 
+describe("errores de base", () => {
+    it("500 con JSON si Prisma falla (p. ej. columna faltante)", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        db.product.findMany.mockRejectedValue(Object.assign(new Error("ColumnNotFound"), { code: "P2022" }));
+        for (const res of [await GET(req()), await POST(req({ match: { id: "p1" }, set: { price: 1 }, source: "n8n" }))]) {
+            expect(res.status).toBe(500);
+            expect(await res.json()).toEqual({ error: "Internal error" });
+        }
+    });
+});
+
 describe("POST /api/price-sync/update", () => {
     it("actualiza solo lo que cambia y lo registra", async () => {
         const res = await POST(req({ match: { sku: "OLD-1" }, set: { price: 47900, sku: "NEW-1" }, source: "n8n-lococo" }));

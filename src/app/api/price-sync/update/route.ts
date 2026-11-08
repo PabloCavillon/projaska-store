@@ -83,6 +83,7 @@ export async function POST(request: Request) {
         if ((e as { code?: string })?.code === "P2002") {
             return NextResponse.json({ error: `El SKU "${set.sku}" ya lo usa otro producto; no se actualizó nada` }, { status: 409 });
         }
-        throw e;
+        console.error("[price-sync/update]", e);
+        return NextResponse.json({ error: "Internal error" }, { status: 500 });
     }
 }

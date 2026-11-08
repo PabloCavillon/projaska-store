@@ -48,6 +48,7 @@ export default function StoreNavbar({ session }: StoreNavbarProps) {
 
                 <nav className="hidden md:flex items-center gap-2" aria-label="Principal">
                     <NavLink href="/catalog" active={pathname.startsWith("/catalog")}>Catálogo</NavLink>
+                    <NavLink href="/arrepentimiento" active={pathname === "/arrepentimiento"}>Arrepentimiento</NavLink>
                     {session && <NavLink href="/orders" active={pathname.startsWith("/orders")}>Mis pedidos</NavLink>}
                 </nav>
 
@@ -58,7 +59,7 @@ export default function StoreNavbar({ session }: StoreNavbarProps) {
                 <div className="hidden md:flex items-center gap-2">
                     {session ? (
                         <>
-                            <span className="osd text-sm text-osd-dim px-2">{session.name.split(" ")[0]}</span>
+                            <NavLink href="/account" active={pathname === "/account"}>{session.name.split(" ")[0]}</NavLink>
                             <LogoutButton />
                         </>
                     ) : (
@@ -101,9 +102,11 @@ export default function StoreNavbar({ session }: StoreNavbarProps) {
             {menuOpen && (
                 <nav className="md:hidden border-t border-hud-line bg-lb px-4 py-3 flex flex-col osd text-base" aria-label="Menú">
                     <Link href="/catalog" onClick={close} className="py-3 border-b border-hud-line">Catálogo</Link>
+                    <Link href="/arrepentimiento" onClick={close} className="py-3 border-b border-hud-line">Botón de arrepentimiento</Link>
                     {session ? (
                         <>
                             <Link href="/orders" onClick={close} className="py-3 border-b border-hud-line">Mis pedidos</Link>
+                            <Link href="/account" onClick={close} className="py-3 border-b border-hud-line">Mi cuenta</Link>
                             <div className="flex items-center justify-between pt-3">
                                 <span className="text-sm text-osd-dim normal-case tracking-normal font-sans">{session.email}</span>
                                 <LogoutButton />

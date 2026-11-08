@@ -104,3 +104,41 @@ export async function updateStoreCustomerProfile(data: {
 
 	return {};
 }
+
+const ACTIVE_ORDER_STATUSES = ["PENDING", "PAYMENT_REGISTERED", "CONFIRMED", "SHIPPED"] as const;
+
+/**
+ * Baja de cuenta pedida por el cliente. Los pedidos se conservan por obligación fiscal, así que la cuenta no se
+ * borra: se anonimiza (sin nombre, email, teléfono ni dirección) y se marca deletedAt. El email queda libre para
+ * volver a registrarse.
+ */
+export async function deleteStoreAccount(password: string): Promise<{ error: string } | { code: string }> {
+	const session = await getStoreSession();
+	if (!session) return { error: "Tu sesión expiró. Ingresá de nuevo." };
+
+	const customer = await prisma.storeCustomer.findUnique({ where: { id: session.id, deletedAt: null } });
+	if (!customer || !(await compare(password, customer.passwordHash))) return { error: "La contraseña no es correcta." };
+
+	const activeOrders = await prisma.storeOrder.count({
+		where: { storeCustomerId: customer.id, deletedAt: null, status: { in: [...ACTIVE_ORDER_STATUSES] } },
+	});
+	if (activeOrders > 0) {
+		return { error: `Tenés ${activeOrders} pedido${activeOrders > 1 ? "s" : ""} en curso. Cuando se entreguen o se cancelen vas a poder darte de baja, o escribinos y lo resolvemos.` };
+	}
+
+	await prisma.storeCustomer.update({
+		where: { id: customer.id },
+		data: {
+			name: "Cuenta dada de baja",
+			email: `baja-${customer.id}@projaska.invalid`,
+			phone: null,
+			address: null,
+			passwordHash: "",
+			customerId: null,
+			deletedAt: new Date(),
+		},
+	});
+	await deleteStoreSession();
+
+	return { code: `BAJA-${customer.id.slice(0, 8).toUpperCase()}` };
+}

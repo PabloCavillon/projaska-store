@@ -34,6 +34,12 @@ export default async function StoreRegisterPage({ searchParams }: RegisterPagePr
                     </div>
 
                     <StoreRegisterForm action={registerStoreCustomer} redirectTo={redirectTo} />
+
+                    <p className="mt-6 text-xs text-osd-dim">
+                        Al crear la cuenta aceptás los{" "}
+                        <Link href="/terms" className="text-pj-ink hover:underline underline-offset-4">Términos y condiciones</Link> y la{" "}
+                        <Link href="/privacy" className="text-pj-ink hover:underline underline-offset-4">Política de privacidad</Link>.
+                    </p>
                 </div>
 
                 <p className="mt-6 text-center text-sm text-osd-dim">

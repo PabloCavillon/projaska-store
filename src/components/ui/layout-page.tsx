@@ -5,8 +5,8 @@ interface PageLayoutProps {
     title: string;
     subtitle: string;
     icon: React.ElementType;
-    buttonText: string;
-    buttonHref: string;
+    buttonText?: string;
+    buttonHref?: string;
     children: React.ReactNode; // Aquí irá la tabla específica
 }
 
@@ -36,13 +36,13 @@ export const PageLayout = ({
                     </p>
                 </div>
 
-                <Link
+                {buttonHref && <Link
                     href={buttonHref}
                     className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-zinc-900 text-white px-6 py-3 uppercase text-sm hover:bg-zinc-800 shrink-0"
                 >
                     <Plus className="w-4 h-4" />
                     {buttonText}
-                </Link>
+                </Link>}
             </header>
 
             <div className="bg-white rounded-3xl border border-zinc-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">

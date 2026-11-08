@@ -117,9 +117,11 @@ export async function createStoreOrder(rawItems: CheckoutItem[]): Promise<Checko
 
     // --- Discount ---
     const storeCustomer = await prisma.storeCustomer.findUnique({
-        where: { id: session.id },
+        where: { id: session.id, deletedAt: null },
         include: { customer: { select: { isGuild: true } } },
     });
+    // La sesión es un JWT de 7 días: puede sobrevivir a la baja de la cuenta en otro dispositivo
+    if (!storeCustomer) return { error: "Tu cuenta ya no está activa." };
     const isGuild = storeCustomer?.customer?.isGuild ?? false;
     const discount = calcDiscount(subtotalArs, config, isGuild);
     const discountApplied = discount.pct;

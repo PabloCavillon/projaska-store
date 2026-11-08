@@ -8,11 +8,15 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const products = await prisma.product.findMany({
-        where: { deletedAt: null },
-        select: { id: true, sku: true, model: true, name: true, description: true, price: true },
-        orderBy: { sku: "asc" },
-    });
-
-    return NextResponse.json(products.map((p) => ({ ...p, price: Number(p.price) })));
+    try {
+        const products = await prisma.product.findMany({
+            where: { deletedAt: null },
+            select: { id: true, sku: true, model: true, name: true, description: true, price: true },
+            orderBy: { sku: "asc" },
+        });
+        return NextResponse.json(products.map((p) => ({ ...p, price: Number(p.price) })));
+    } catch (e) {
+        console.error("[price-sync/products]", e);
+        return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    }
 }

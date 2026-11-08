@@ -2,7 +2,8 @@ import StoreNavbar from "@/components/store/store-navbar";
 import { CartProvider } from "@/contexts/cart-context";
 import { ServiceWorkerRegistrar } from "@/components/store/service-worker-registrar";
 import { getStoreSession } from "@/lib/store-auth";
-import { whatsappUrl } from "@/lib/store-contact";
+import { CONSUMER_CLAIMS_URL, whatsappUrl } from "@/lib/store-contact";
+import Link from "next/link";
 import { Metadata } from "next";
 import { osdFont } from "@/lib/fonts";
 import { ArrowRight } from "lucide-react";
@@ -36,6 +37,14 @@ export default async function StoreLayout({
                     {children}
                 </main>
                 <footer className="border-t border-hud-line">
+                    <nav aria-label="Legales" className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pt-8 flex flex-wrap gap-x-6 gap-y-3 osd text-xs text-osd-dim">
+                        <Link href="/arrepentimiento" className="text-osd hover:text-pj-ink">Botón de arrepentimiento</Link>
+                        <Link href="/terms" className="hover:text-osd">Términos y condiciones</Link>
+                        <Link href="/privacy" className="hover:text-osd">Política de privacidad</Link>
+                        <a href={CONSUMER_CLAIMS_URL} target="_blank" rel="noopener noreferrer" className="hover:text-osd">
+                            Defensa de las y los consumidores. Para reclamos ingrese aquí
+                        </a>
+                    </nav>
                     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-8 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between osd text-xs text-osd-dim">
                         <span>© {new Date().getFullYear()} Projaska · Tecnología y seguridad</span>
                         <a

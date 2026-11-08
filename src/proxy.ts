@@ -13,6 +13,7 @@ const ROLE_ROUTES: Record<string, string[]> = {
 	"/admin/customers": ["ADMIN", "SELLER"],
 	"/admin/stock": ["ADMIN", "WAREHOUSE"],
 	"/admin/users": ["ADMIN"],
+	"/admin/arrepentimientos": ["ADMIN", "SELLER"],
 	"/admin/orders": ["ADMIN", "SELLER", "WAREHOUSE"],
 };
 
@@ -20,6 +21,7 @@ const ROLE_ROUTES: Record<string, string[]> = {
 const STORE_PROTECTED_ROUTES = [
 	"/orders",
 	"/checkout",
+	"/account",
 ];
 
 const ADMIN_PREFIX = "/admin";
