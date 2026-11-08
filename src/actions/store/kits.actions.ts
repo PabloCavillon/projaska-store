@@ -12,6 +12,8 @@ export type StoreKit = {
     imageUrl: string | null;
     priceUsd: number;
     priceArs: number;
+    /** precio ARS ÷ dollarRate = precio de venta en USD */
+    dollarRate: number;
     items: {
         productId: string | null;
         productName: string | null;
@@ -41,6 +43,7 @@ export async function getStoreKit(id: string): Promise<StoreKit | null> {
         id: kit.id, sku: kit.sku, name: kit.name, description: kit.description, imageUrl: kit.imageUrl,
         priceUsd: Number(kit.price),
         priceArs: Math.round(calcPriceArs(Number(kit.price), priceInfo)),
+        dollarRate: priceInfo.dollarRate,
         items: kit.items.map((i) => ({ productId: i.productId, productName: i.product?.name ?? null, childKitName: i.childKit?.name ?? null, quantity: i.quantity })),
     };
 }
@@ -79,6 +82,7 @@ export async function getStoreKits(): Promise<{ kits: StoreKit[]; config: PriceI
             imageUrl: k.imageUrl,
             priceUsd: Number(k.price),
             priceArs: Math.round(calcPriceArs(Number(k.price), priceInfo)),
+            dollarRate: priceInfo.dollarRate,
             items: k.items.map((i) => ({
                 productId: i.productId,
                 productName: i.product?.name ?? null,

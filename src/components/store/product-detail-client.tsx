@@ -2,7 +2,7 @@
 
 import { StoreProduct } from "@/actions/store/products.actions";
 import { AddToCartControls } from "@/components/store/add-to-cart-controls";
-import { cn, fmtArs } from "@/lib/utils";
+import { cn, fmtArs, fmtUsd } from "@/lib/utils";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -89,6 +89,7 @@ export function ProductDetailClient({ product }: { product: StoreProduct }) {
                 <p className="vf-label">Precio ARS</p>
                 {offerApplies && <p className="osd text-base text-osd-dim line-through">{fmtArs(regularPriceArs)}</p>}
                 <p className="osd text-5xl leading-none">{fmtArs(displayPriceArs)}</p>
+                <p className="osd text-xs text-osd-dim tabular-nums">{fmtUsd(displayPriceArs / product.dollarRate)}</p>
                 {selectedUnit === "box" && (
                     <p className="osd text-xs text-osd-dim pt-2">
                         {offerApplies

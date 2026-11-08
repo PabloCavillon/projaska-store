@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cn, safeRedirect } from "@/lib/utils";
+import { cn, fmtUsd, safeRedirect } from "@/lib/utils";
 
 describe("cn", () => {
     it("combina clases simples", () => {
@@ -40,5 +40,12 @@ describe("safeRedirect", () => {
         for (const bad of ["https://evil.com", "//evil.com", "/\\evil.com", "", undefined, "checkout"]) {
             expect(safeRedirect(bad)).toBe("/");
         }
+    });
+});
+
+describe("fmtUsd", () => {
+    it("muestra centavos debajo de 100 y miles con punto arriba", () => {
+        expect(fmtUsd(12.5)).toBe("US$ 12,50");
+        expect(fmtUsd(1234.4)).toBe("US$ 1.234");
     });
 });

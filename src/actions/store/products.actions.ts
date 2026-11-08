@@ -20,6 +20,8 @@ export type StoreProduct = {
     offerPriceArs: number | null;   // derived: calcPriceArs(offerPriceUsd)
     offerUnit: "unit" | "box" | null;
     isMadeToOrder: boolean;
+    /** Cotización usada para los precios en pesos: precio ARS ÷ dollarRate = precio de venta en USD */
+    dollarRate: number;
 };
 
 const productSelect = {
@@ -57,6 +59,7 @@ function mapProduct(p: {
         offerPriceArs: offerPriceUsd !== null ? Math.round(calcPriceArs(offerPriceUsd, priceInfo)) : null,
         offerUnit,
         isMadeToOrder: p.isMadeToOrder,
+        dollarRate: priceInfo.dollarRate,
     };
 }
 

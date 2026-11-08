@@ -1,7 +1,7 @@
 import { getStoreKit } from "@/actions/store/kits.actions";
 import { AddToCartControls } from "@/components/store/add-to-cart-controls";
 import { ViewfinderImage } from "@/components/store/viewfinder-image";
-import { fmtArs } from "@/lib/utils";
+import { fmtArs, fmtUsd } from "@/lib/utils";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -101,6 +101,7 @@ export default async function KitDetailPage({ params }: { params: Promise<{ id: 
                     <div className="space-y-1">
                         <p className="vf-label">Precio ARS</p>
                         <p className="osd text-5xl leading-none">{fmtArs(kit.priceArs)}</p>
+                        <p className="osd text-xs text-osd-dim tabular-nums">{fmtUsd(kit.priceArs / kit.dollarRate)}</p>
                     </div>
 
                     {/* Controles de carrito */}

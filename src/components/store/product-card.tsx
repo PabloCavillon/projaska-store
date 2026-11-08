@@ -2,7 +2,7 @@
 
 import { useCart } from "@/contexts/cart-context";
 import { StoreProduct } from "@/actions/store/products.actions";
-import { cn, fmtArs } from "@/lib/utils";
+import { cn, fmtArs, fmtUsd } from "@/lib/utils";
 import { Package } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -106,6 +106,7 @@ export function ProductCard({ product }: { product: StoreProduct }) {
                 <div>
                     {offerApplies && <span className="osd block text-[11px] text-osd-dim line-through">{fmtArs(regularPriceArs)}</span>}
                     <p className="osd text-lg sm:text-xl leading-none">{fmtArs(displayPriceArs)}</p>
+                    <span className="osd block text-[11px] text-osd-dim mt-1 tabular-nums">{fmtUsd(displayPriceArs / product.dollarRate)}</span>
                 </div>
             </div>
 

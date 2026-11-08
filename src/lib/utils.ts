@@ -17,6 +17,11 @@ export function fmtArs(n: number): string {
     const formatted = abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     return `${sign}$ ${formatted}`;
 }
+/** Precio de venta en dólares (pesos ÷ cotización). Ej: 12.5 → "US$ 12,50"; 1234 → "US$ 1.234" */
+export function fmtUsd(n: number): string {
+    const [int, dec] = Math.abs(n).toFixed(n < 100 ? 2 : 0).split(".");
+    return `US$ ${int.replace(/\B(?=(\d{3})+(?!\d))/g, ".")}${dec ? `,${dec}` : ""}`;
+}
 /** Solo rutas internas: evita redirigir a otro dominio con ?redirect=//evil.com o https://... */
 export function safeRedirect(path: string | null | undefined, fallback = "/"): string {
     if (!path || !path.startsWith("/") || path.startsWith("//") || path.startsWith("/\\")) return fallback;

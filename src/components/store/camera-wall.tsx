@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 type SceneId = "entrance" | "garage" | "warehouse" | "perimeter";
 
@@ -37,8 +37,8 @@ function useClock() {
     return `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
-/** Monitor de un grabador de seguridad: una cámara grande que rota y las otras en miniatura. */
-export function CameraWall() {
+/** Portada como vista de cámara: la toma ocupa todo el hero, con el OSD del grabador y el contenido encima. */
+export function CameraWall({ children }: { children: ReactNode }) {
     const [main, setMain] = useState(0);
     const [paused, setPaused] = useState(false);
     const clock = useClock();
@@ -52,49 +52,55 @@ export function CameraWall() {
     const feed = FEEDS[main];
 
     return (
-        <div
-            className="flex flex-col gap-2"
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
-            onFocus={() => setPaused(true)}
-            onBlur={() => setPaused(false)}
-        >
-            <div className="relative aspect-video overflow-hidden bg-black" role="img" aria-label={`Vista de ${feed.cam}, ${feed.label}`}>
-                <FeedPicture feed={feed} />
-                <div className="osd absolute inset-0 p-3 sm:p-4 flex flex-col justify-between text-[11px] sm:text-xs text-osd [text-shadow:0_1px_2px_rgb(0_0_0/0.9)] pointer-events-none">
-                    <div className="flex items-start justify-between gap-3">
-                        <span>{feed.cam}<span className="text-osd-dim ml-2">{feed.label}</span></span>
-                        <span className="flex items-center gap-1.5">
-                            <span className="vf-rec inline-block w-2.5 h-2.5 rounded-full bg-rec" aria-hidden="true" />
-                            Rec
-                        </span>
+        <section className="vf-frame vf-frame-lg relative overflow-hidden bg-black min-h-[min(calc(100svh-9rem),48rem)] flex flex-col">
+            <FeedPicture feed={feed} />
+            {/* Oscurece el lado del texto para que se lea sobre cualquier toma */}
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgb(0_0_0/0.8),rgb(0_0_0/0.45)_55%,rgb(0_0_0/0.1))]" aria-hidden="true" />
+
+            <div className="relative flex-1 flex flex-col gap-10 px-5 py-6 sm:px-10 sm:py-9 [text-shadow:0_1px_2px_rgb(0_0_0/0.9)]">
+                <div className="osd flex items-start justify-between gap-4 text-xs sm:text-sm">
+                    <span className="flex items-center gap-2">
+                        <span className="vf-rec inline-block w-2.5 h-2.5 rounded-full bg-rec" aria-hidden="true" />
+                        <span>Rec</span>
+                        <span className="ml-2">{feed.cam}</span>
+                        <span className="text-osd-dim hidden sm:inline">{feed.label}</span>
+                    </span>
+                    <span className="tabular-nums text-right">{clock}</span>
+                </div>
+
+                <div className="flex-1 flex items-center">{children}</div>
+
+                <div className="flex items-end justify-between gap-4">
+                    <div
+                        className="grid grid-cols-4 gap-2 w-full max-w-sm"
+                        role="group"
+                        aria-label="Cámaras"
+                        onMouseEnter={() => setPaused(true)}
+                        onMouseLeave={() => setPaused(false)}
+                        onFocus={() => setPaused(true)}
+                        onBlur={() => setPaused(false)}
+                    >
+                        {FEEDS.map((f, i) => (
+                            <button
+                                key={f.cam}
+                                type="button"
+                                onClick={() => setMain(i)}
+                                aria-pressed={i === main}
+                                aria-label={`Ver ${f.cam}, ${f.label}`}
+                                className={cn(
+                                    "vf-frame vf-focus relative aspect-video overflow-hidden bg-black cursor-pointer",
+                                    i === main && "is-locked",
+                                )}
+                            >
+                                <FeedPicture feed={f} still />
+                                <span className="osd absolute left-1.5 bottom-1 text-[10px] text-osd">{f.cam.replace("CAM ", "")}</span>
+                            </button>
+                        ))}
                     </div>
-                    <div className="flex items-end justify-between gap-3">
-                        <span className="tabular-nums">{clock}</span>
-                        <span className="text-osd-dim">{feed.ir ? "IR · " : ""}1080P · 25FPS</span>
-                    </div>
+                    <span className="osd text-xs text-osd-dim shrink-0 hidden sm:inline">{feed.ir ? "IR · " : ""}1080P · 25FPS</span>
                 </div>
             </div>
-
-            <div className="grid grid-cols-4 gap-2" role="group" aria-label="Cámaras">
-                {FEEDS.map((f, i) => (
-                    <button
-                        key={f.cam}
-                        type="button"
-                        onClick={() => setMain(i)}
-                        aria-pressed={i === main}
-                        aria-label={`Ver ${f.cam}, ${f.label}`}
-                        className={cn(
-                            "vf-frame vf-focus relative aspect-video overflow-hidden bg-black cursor-pointer",
-                            i === main && "is-locked",
-                        )}
-                    >
-                        <FeedPicture feed={f} still />
-                        <span className="osd absolute left-1.5 bottom-1 text-[10px] text-osd [text-shadow:0_1px_2px_rgb(0_0_0/0.9)]">{f.cam.replace("CAM ", "")}</span>
-                    </button>
-                ))}
-            </div>
-        </div>
+        </section>
     );
 }
 

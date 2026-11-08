@@ -3,7 +3,6 @@ import type { StoreKit } from "@/actions/store/kits.actions";
 import { ProductCard } from "@/components/store/product-card";
 import { CameraWall } from "@/components/store/camera-wall";
 import { fmtArs } from "@/lib/utils";
-import { ZoomBar } from "@/components/store/vf-parts";
 import { whatsappUrl } from "@/lib/store-contact";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -23,21 +22,8 @@ export function StoreHome({ products, kits, bestSellers, bestSellersAreSales, do
     return (
         <div className="space-y-10 sm:space-y-14">
             {/* Visor: portada. Las esquinas llevan lecturas reales, no slogans. */}
-            <section className="vf-frame vf-frame-lg relative px-5 py-6 sm:px-10 sm:py-9 lg:min-h-[min(calc(100svh-9rem),48rem)] flex flex-col gap-10">
-                <div className="osd flex items-start justify-between gap-4 text-xs sm:text-sm">
-                    <span className="flex items-center gap-2">
-                        <span className="vf-rec inline-block w-2.5 h-2.5 rounded-full bg-rec" aria-hidden="true" />
-                        <span>Rec</span>
-                        <span className="text-osd-dim ml-2 hidden sm:inline">Tecnología y seguridad · AR</span>
-                    </span>
-                    <span className="text-right">
-                        <span className="text-osd-dim">Dólar de referencia</span><br />
-                         1 USD = {fmtArs(dollarRate)}
-                    </span>
-                </div>
-
-                <div className="grid lg:grid-cols-12 gap-10 lg:gap-8 flex-1 items-center">
-                    <div className="lg:col-span-6 flex flex-col gap-7">
+            <CameraWall>
+                    <div className="flex flex-col gap-7 max-w-2xl">
                         <h1 className="osd text-[2.6rem] leading-[0.95] sm:text-6xl xl:text-[5.5rem] tracking-[0.02em] text-balance">
                             Seguridad completa.<br />
                             <span className="text-pj-ink">Instalada.</span>
@@ -59,26 +45,11 @@ export function StoreHome({ products, kits, bestSellers, bestSellersAreSales, do
                                 Pedir asesoramiento
                             </a>
                         </div>
+                        <p className="osd text-xs text-osd-dim tabular-nums">
+                            1 USD = {fmtArs(dollarRate)} · {pad(products.length)} productos · {pad(kits.length)} kits
+                        </p>
                     </div>
-
-                    <div className="lg:col-span-6">
-                        <CameraWall />
-                    </div>
-                </div>
-
-                <div className="osd grid grid-cols-2 sm:grid-cols-3 items-end gap-4 text-xs">
-                    <span className="text-osd-dim">{pad(products.length)} productos<br />{pad(kits.length)} kits</span>
-                    <ZoomBar level={0.08} ticks={36} className="hidden sm:flex justify-self-center" />
-                    <a
-                        href={whatsappUrl("Hola! Quería consultar por una instalación.")}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-right text-osd hover:text-pj-ink justify-self-end inline-flex items-end gap-2"
-                    >
-                        <span>Instalación propia<br /><span className="text-osd-dim">Consultar por WhatsApp</span></span> <ArrowRight size={16} aria-hidden="true" />
-                    </a>
-                </div>
-            </section>
+            </CameraWall>
 
             {bestSellers.length > 0 && (
                 <section aria-labelledby="mas-vendidos" className="space-y-5">

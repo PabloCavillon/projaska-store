@@ -2,7 +2,7 @@
 
 import { useCart } from "@/contexts/cart-context";
 import { StoreKit } from "@/actions/store/kits.actions";
-import { cn, fmtArs } from "@/lib/utils";
+import { cn, fmtArs, fmtUsd } from "@/lib/utils";
 import { Boxes } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -65,7 +65,10 @@ export function KitCard({ kit }: { kit: StoreKit }) {
                 </ul>
             </div>
 
-            <p className="osd text-lg sm:text-xl leading-none">{fmtArs(kit.priceArs)}</p>
+            <div>
+                <p className="osd text-lg sm:text-xl leading-none">{fmtArs(kit.priceArs)}</p>
+                <span className="osd block text-[11px] text-osd-dim mt-1 tabular-nums">{fmtUsd(kit.priceArs / kit.dollarRate)}</span>
+            </div>
 
             {inCart ? (
                 <QtyStepper quantity={inCart.quantity} onChange={(q) => updateQuantity(cartKey, q)} label={kit.name} className="self-center" />
