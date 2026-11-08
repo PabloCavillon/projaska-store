@@ -68,7 +68,7 @@ export function KitCard({ kit }: { kit: StoreKit }) {
             <p className="osd text-lg sm:text-xl leading-none">{fmtArs(kit.priceArs)}</p>
 
             {inCart ? (
-                <QtyStepper quantity={inCart.quantity} onChange={(q) => updateQuantity(cartKey, q)} label={kit.name} />
+                <QtyStepper quantity={inCart.quantity} onChange={(q) => updateQuantity(cartKey, q)} label={kit.name} className="self-center" />
             ) : (
                 <button onClick={handleAdd} className="vf-btn vf-btn-primary w-full py-2.5 text-xs min-h-11 md:min-h-0">Agregar</button>
             )}

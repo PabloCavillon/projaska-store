@@ -117,6 +117,7 @@ export function ProductCard({ product }: { product: StoreProduct }) {
                     onChange={(q) => updateQuantity(cartKey, q)}
                     max={product.isMadeToOrder ? undefined : selectedUnit === "box" ? Math.floor(product.stock / product.unitsPerBox!) : product.stock}
                     label={product.name}
+                    className="self-center"
                 />
             ) : (
                 <button onClick={handleAdd} className="vf-btn vf-btn-primary w-full py-2.5 text-xs min-h-11 md:min-h-0">

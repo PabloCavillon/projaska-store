@@ -25,16 +25,22 @@ interface QtyStepperProps {
     max?: number;
     size?: "sm" | "lg";
     label: string;
+    className?: string;
 }
 
-export function QtyStepper({ quantity, onChange, max, size = "sm", label }: QtyStepperProps) {
+export function QtyStepper({ quantity, onChange, max, size = "sm", label, className }: QtyStepperProps) {
     const box = size === "lg" ? "w-12 h-12" : "w-11 h-11 md:w-9 md:h-9";
     const atMax = max !== undefined && quantity >= max;
     return (
-        <div className="flex items-center border border-hud-line" role="group" aria-label={`Cantidad de ${label}`}>
+        <div className={cn("flex items-center border border-hud-line", className)} role="group" aria-label={`Cantidad de ${label}`}>
             <button
                 onClick={() => onChange(quantity - 1)}
-                className={cn(box, "flex items-center justify-center text-osd-dim hover:text-osd hover:bg-hud cursor-pointer")}
+                className={cn(
+                    box,
+                    "flex items-center justify-center hover:bg-hud cursor-pointer",
+                    // En 1 el botón quita el artículo: tachito en rojo para que se lea como borrar
+                    quantity === 1 ? "text-red-500 hover:text-red-400" : "text-osd-dim hover:text-osd",
+                )}
                 aria-label={quantity === 1 ? "Quitar del carrito" : "Restar uno"}
             >
                 {quantity === 1 ? <Trash2 size={14} /> : <Minus size={14} />}
