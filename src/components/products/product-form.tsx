@@ -38,6 +38,7 @@ export function ProductForm({ product, config }: Props) {
         resolver: zodResolver(productSchema),
         defaultValues: {
             sku: product?.sku ?? '',
+            model: product?.model ?? '',
             name: product?.name ?? '',
             description: product?.description ?? '',
             imageUrl: product?.imageUrl ?? '',
@@ -146,6 +147,13 @@ export function ProductForm({ product, config }: Props) {
                     <label className={labelClasses}>Nombre</label>
                     <input {...register("name")} placeholder="Nombre del producto" className={cn(inputClasses, errors.name && "border-red-200")} />
                     {errors.name && <p className="text-sm text-red-500 mt-2 ml-1">{errors.name.message}</p>}
+                </div>
+
+                <div className="flex flex-col">
+                    <label className={labelClasses} htmlFor="product-model">Modelo <span className="normal-case tracking-normal font-normal text-zinc-400">(opcional)</span></label>
+                    <input id="product-model" {...register("model")} placeholder="HAC-B1A21P" className={cn(inputClasses, errors.model && "border-red-200")} />
+                    <p className="text-xs text-zinc-500 mt-2 ml-1">Modelo del fabricante, tal como figura en la lista del proveedor. Se usa para actualizar precios automáticamente.</p>
+                    {errors.model && <p className="text-sm text-red-500 mt-2 ml-1">{errors.model.message}</p>}
                 </div>
             </div>
 

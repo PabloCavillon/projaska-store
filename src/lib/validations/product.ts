@@ -2,6 +2,11 @@ import { z } from "zod";
 
 export const productSchema = z.object({
 	sku: z.string().min(1, "SKU is required"),
+	// Modelo del fabricante: clave de cruce con el proveedor (n8n). Vacío → null.
+	model: z.preprocess(
+		(v) => (typeof v === "string" && v.trim() !== "" ? v.trim() : null),
+		z.string().max(100).nullable()
+	),
 	name: z.string().min(1, "Name is required"),
 	description: z.string().optional(),
 	imageUrl: z.string().optional(),

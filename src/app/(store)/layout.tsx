@@ -47,7 +47,10 @@ export default async function StoreLayout({
                         </a>
                     </nav>
                     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-8 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between osd text-xs text-osd-dim">
-                        <span>© {new Date().getFullYear()} Projaska · Tecnología y seguridad</span>
+                        <span>
+                            © {new Date().getFullYear()} Projaska · Tecnología y seguridad · Desarrollado por{" "}
+                            <a href="https://cuarzostudio.com" target="_blank" rel="noopener" className="text-osd hover:text-pj-ink">Cuarzo Studio</a>
+                        </span>
                         <a
                             href={whatsappUrl("Hola! Quería hacer una consulta.")}
                             target="_blank"

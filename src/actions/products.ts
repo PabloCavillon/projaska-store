@@ -13,6 +13,7 @@ function serialize(p: Product): SerializedProduct {
 	return {
 		id: p.id,
 		sku: p.sku,
+		model: p.model,
 		name: p.name,
 		description: p.description,
 		imageUrl: p.imageUrl,
@@ -58,6 +59,7 @@ export async function getProduct(
 
 export const createProduct = async (data: {
 	sku: string;
+	model?: string | null;
 	name: string;
 	description?: string;
 	imageUrl?: string;
@@ -80,6 +82,7 @@ export const updateProduct = async (
 	id: string,
 	data: {
 		sku: string;
+		model?: string | null;
 		name: string;
 		description?: string;
 		imageUrl?: string;

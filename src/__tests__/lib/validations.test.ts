@@ -82,6 +82,12 @@ describe("productSchema", () => {
         }
     });
 
+    it("model es opcional: vacío o ausente queda null, con valor se recorta", () => {
+        expect(productSchema.parse(valid).model).toBeNull();
+        expect(productSchema.parse({ ...valid, model: "  " }).model).toBeNull();
+        expect(productSchema.parse({ ...valid, model: " HAC-B1A21P " }).model).toBe("HAC-B1A21P");
+    });
+
     it("rechaza precio negativo o cero", () => {
         expect(productSchema.safeParse({ ...valid, price: "0" }).success).toBe(false);
         expect(productSchema.safeParse({ ...valid, price: "-5" }).success).toBe(false);

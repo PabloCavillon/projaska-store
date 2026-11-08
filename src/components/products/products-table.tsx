@@ -22,7 +22,7 @@ export default function ProductsTable({ products: initialProducts }: Props) {
     const filtered = products.filter(p => {
         const searchTerm = search.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-        return [p.name, p.sku, p.category].some(field => {
+        return [p.name, p.sku, p.model ?? "", p.category].some(field => {
             if (!field) return false;
             const normalizedField = field.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             return normalizedField.includes(searchTerm);
