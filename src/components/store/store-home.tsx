@@ -1,12 +1,11 @@
 import type { StoreProduct } from "@/actions/store/products.actions";
 import type { StoreKit } from "@/actions/store/kits.actions";
-import { AddToCartControls } from "@/components/store/add-to-cart-controls";
 import { ProductCard } from "@/components/store/product-card";
+import { CameraWall } from "@/components/store/camera-wall";
 import { fmtArs } from "@/lib/utils";
 import { ZoomBar } from "@/components/store/vf-parts";
 import { whatsappUrl } from "@/lib/store-contact";
-import { Boxes, ArrowRight } from "lucide-react";
-import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -21,15 +20,13 @@ interface StoreHomeProps {
 }
 
 export function StoreHome({ products, kits, bestSellers, bestSellersAreSales, dollarRate }: StoreHomeProps) {
-    const featured = kits[0];
-
     return (
         <div className="space-y-10 sm:space-y-14">
             {/* Visor: portada. Las esquinas llevan lecturas reales, no slogans. */}
             <section className="vf-frame vf-frame-lg relative px-5 py-6 sm:px-10 sm:py-9 lg:min-h-[min(calc(100svh-9rem),48rem)] flex flex-col gap-10">
                 <div className="osd flex items-start justify-between gap-4 text-xs sm:text-sm">
                     <span className="flex items-center gap-2">
-                        <span className="vf-rec inline-block w-2.5 h-2.5 rounded-full bg-osd" aria-hidden="true" />
+                        <span className="vf-rec inline-block w-2.5 h-2.5 rounded-full bg-rec" aria-hidden="true" />
                         <span>Rec</span>
                         <span className="text-osd-dim ml-2 hidden sm:inline">Tecnología y seguridad · AR</span>
                     </span>
@@ -64,62 +61,9 @@ export function StoreHome({ products, kits, bestSellers, bestSellersAreSales, do
                         </div>
                     </div>
 
-                    {featured && (
-                        <div className="lg:col-span-6 grid sm:grid-cols-[1fr_auto] lg:grid-cols-1 xl:grid-cols-[1fr_18rem] gap-6 items-end">
-                            <Link
-                                href={`/kits/${featured.id}`}
-                                className={`vf-frame vf-focus relative block aspect-[4/3] ${featured.imageUrl ? "vf-plate" : "bg-hud"}`}
-                                aria-label={`Ver ${featured.name}`}
-                            >
-                                {featured.imageUrl ? (
-                                    <Image
-                                        src={featured.imageUrl}
-                                        alt=""
-                                        fill
-                                        sizes="(min-width: 1024px) 35vw, 90vw"
-                                        className="object-contain p-10"
-                                        unoptimized
-                                        priority
-                                    />
-                                ) : (
-                                    <span className="absolute inset-0 flex items-center justify-center opacity-40"><Boxes size={72} /></span>
-                                )}
-                                {/* Retícula central */}
-                                <span className="absolute left-1/2 top-1/2 w-5 h-px -translate-x-1/2 bg-current opacity-50" aria-hidden="true" />
-                                <span className="absolute left-1/2 top-1/2 h-5 w-px -translate-y-1/2 bg-current opacity-50" aria-hidden="true" />
-                                <span className="osd absolute top-3 left-4 text-xs">{featured.sku}</span>
-                                <span className="osd absolute bottom-3 right-4 text-xs">{featured.items.length} componentes</span>
-                            </Link>
-
-                            <div className="flex flex-col gap-4 min-w-0">
-                                <div>
-                                    <p className="text-lg leading-snug">{featured.name}</p>
-                                    <ul className="osd text-xs text-osd-dim mt-2 space-y-1">
-                                        {featured.items.slice(0, 4).map((item, i) => (
-                                            <li key={i} className="flex gap-2">
-                                                <span className="tabular-nums">{item.quantity}×</span>
-                                                <span className="normal-case tracking-normal font-sans truncate">{item.productName ?? item.childKitName}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                <p className="osd text-3xl">{fmtArs(featured.priceArs)}</p>
-                                <AddToCartControls
-                                    item={{
-                                        cartKey: `kit:${featured.id}`,
-                                        type: "kit",
-                                        id: featured.id,
-                                        name: featured.name,
-                                        sku: featured.sku,
-                                        priceUsd: featured.priceUsd,
-                                        imageUrl: featured.imageUrl,
-                                        unit: "unit",
-                                        isOffer: false,
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    )}
+                    <div className="lg:col-span-6">
+                        <CameraWall />
+                    </div>
                 </div>
 
                 <div className="osd grid grid-cols-2 sm:grid-cols-3 items-end gap-4 text-xs">

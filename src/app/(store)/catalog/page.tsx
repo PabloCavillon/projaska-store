@@ -13,7 +13,8 @@ export const metadata = {
     alternates: { canonical: "/catalog" },
 };
 
-export default async function CatalogPage() {
+export default async function CatalogPage({ searchParams }: { searchParams: Promise<{ cat?: string }> }) {
+    const { cat } = await searchParams;
     const [{ products, config }, { kits }] = await Promise.all([getStoreProducts(), getStoreKits()]);
 
     if (!config) {
@@ -37,7 +38,7 @@ export default async function CatalogPage() {
                 </p>
             </div>
             <div id="catalogo" className="scroll-mt-16 space-y-10 sm:space-y-14">
-                <Catalog products={products} kits={kits} />
+                <Catalog products={products} kits={kits} initialCat={cat} />
             </div>
         </div>
     );

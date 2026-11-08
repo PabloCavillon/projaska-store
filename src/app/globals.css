@@ -148,6 +148,7 @@ body {
 	--color-osd: #f2f4f5;         /* tinta OSD */
 	--color-osd-dim: #9aa2a8;     /* texto secundario (≥6:1 sobre lb) */
 	--color-caution: #ffb000;     /* zoom, stock bajo, corchetes activos, avisos */
+	--color-rec: #ff2d2d;         /* solo el punto de grabación */
 	--color-pj: #1479bc;          /* azul del logo: acción primaria */
 	--color-pj-hi: #2690d6;
 	--color-pj-ink: #5fb2e8;      /* azul legible como texto sobre negro */
@@ -285,8 +286,45 @@ body {
 
 	@keyframes vf-rec { 50% { opacity: 0.25; } }
 	.vf-rec { animation: vf-rec 1.6s steps(1, end) infinite; }
+
+	/* Imagen de cámara de seguridad: blanco y negro, grano, líneas de barrido y viñeta */
+	.cctv { filter: grayscale(1) contrast(1.15) brightness(0.95); }
+	.cctv-ir { filter: grayscale(1) contrast(1.35) brightness(1.15); }
+	.cctv-grain,
+	.cctv-lines,
+	.cctv-vignette { position: absolute; inset: 0; pointer-events: none; }
+	.cctv-grain {
+		inset: -50%;
+		opacity: 0.22;
+		mix-blend-mode: overlay;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+		animation: cctv-grain 0.5s steps(5) infinite;
+	}
+	.cctv-lines {
+		background-image: repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 3px);
+	}
+	.cctv-vignette {
+		background: radial-gradient(ellipse at center, transparent 55%, rgb(0 0 0 / 0.65) 100%);
+	}
+	@keyframes cctv-grain {
+		0% { transform: translate(0, 0); }
+		20% { transform: translate(-6%, 4%); }
+		40% { transform: translate(5%, -7%); }
+		60% { transform: translate(-3%, 8%); }
+		80% { transform: translate(7%, 2%); }
+	}
+	/* Una persona cruza el acceso: la escena se lee como en vivo */
+	.cctv-walk { animation: cctv-walk 14s linear infinite; }
+	@keyframes cctv-walk {
+		from { transform: translateX(-30px); }
+		to { transform: translateX(350px); }
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.vf-rec { animation: none; }
+		.vf-rec,
+		.cctv-grain,
+		.cctv-walk { animation: none; }
+		.cctv-walk { transform: translateX(110px); }
 	}
 }
 

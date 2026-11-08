@@ -141,6 +141,7 @@ A near-black instrument palette with one blue for action and one amber for cauti
 - **Lens Blue Ink** (pj-ink): the legible blue for text on black, such as the highlighted word in the hero headline. Never use the base blue as text on black.
 
 ### Secondary
+- **Rec Red** (rec, #ff2d2d): the recording dot only, in the home viewfinder and on the camera feeds. Never used for anything else.
 - **Caution Amber** (caution): functional signal, never decoration. Its roles are fixed by the Caution Amber Rule below. It is also the selection background and the text caret.
 
 ### Neutral
@@ -226,7 +227,7 @@ Instrument keys: mono, uppercase and square.
 - **Mobile:** a hamburger opens a stacked OSD list with HUD Line separators.
 
 ### Channel Bar (signature)
-A sticky strip that treats each category as a TV channel. Its right end holds the catalog search (name, SKU or category, accent-insensitive; "/" focuses it, Esc clears). While a search is active the channel list hides, the counter reads the result count, and one results grid replaces the sections. A `CH nn/NN` counter on the left follows scroll through an IntersectionObserver. Category items are Readout links, and the active channel is locked with amber brackets. Section heads repeat the index as a dim `CHnn` before the title.
+A sticky strip that treats each category as a TV channel. Choosing a channel filters the catalog to that category (`?cat=` in the URL); CH 00 "Todos" shows every section, rendered 20 cards at a time as the reader nears the end. Its right end holds the catalog search (name, SKU or category, accent-insensitive; "/" focuses it, Esc clears). While a search is active the channel list hides, the counter reads the result count, and one results grid replaces the sections. A `CH nn/NN` counter on the left shows the chosen channel. Category items are Readout buttons with their item count, and the chosen channel is locked with amber brackets. Section heads repeat the index as a dim `CHnn` before the title.
 
 ### Stock Readout
 Stock shown as data. Normal stock is `Stock n` in OSD Dim. Three or fewer, or made-to-order, is amber (`Últimas n` / `Por encargo`). Zero is a small zebra swatch plus `Sin stock` in OSD Dim.
