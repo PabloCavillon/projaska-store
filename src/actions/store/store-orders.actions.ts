@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getPriceConfig } from "@/actions/config";
 import { getStoreSession } from "@/lib/store-auth";
-import { calcPriceArs } from "@/lib/price-utils";
+import { calcPriceArs, calcDiscount } from "@/lib/price-utils";
 import { customAlphabet } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
@@ -99,13 +99,9 @@ export async function createStoreOrder(items: CheckoutItem[]): Promise<CheckoutR
         include: { customer: { select: { isGuild: true } } },
     });
     const isGuild = storeCustomer?.customer?.isGuild ?? false;
-    const guildDiscount = isGuild ? config.guildDiscountPct : 0;
-    const volumeDiscount = subtotalArs >= config.volumeThresholdArs ? config.volumeDiscountPct : 0;
-    const discountApplied = Math.max(guildDiscount, volumeDiscount);
-    const discountType =
-        discountApplied === 0 ? "NONE"
-        : guildDiscount >= volumeDiscount ? "GUILD"
-        : "VOLUME";
+    const discount = calcDiscount(subtotalArs, config, isGuild);
+    const discountApplied = discount.pct;
+    const discountType = discount.type ?? "NONE";
 
     const code = `STR-${nanoid()}`;
 

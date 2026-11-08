@@ -139,6 +139,157 @@ body {
 	}
 }
 
+/* ── Storefront: mundo "visor de cámara" ───────────────────────
+   Tokens propios (no los toca el override de .dark del admin). */
+@theme {
+	--color-lb: #0a0a0a;          /* letterbox black: fondo */
+	--color-hud: #16191c;         /* superficie HUD */
+	--color-hud-line: #2a2f33;    /* filetes */
+	--color-osd: #f2f4f5;         /* tinta OSD */
+	--color-osd-dim: #9aa2a8;     /* texto secundario (≥6:1 sobre lb) */
+	--color-caution: #ffb000;     /* zoom, stock bajo, corchetes activos, avisos */
+	--color-pj: #1479bc;          /* azul del logo: acción primaria */
+	--color-pj-hi: #2690d6;
+	--color-pj-ink: #5fb2e8;      /* azul legible como texto sobre negro */
+}
+
+@layer components {
+	.store {
+		background: var(--color-lb);
+		color: var(--color-osd);
+		color-scheme: dark;
+		accent-color: var(--color-pj);
+		caret-color: var(--color-caution);
+		scrollbar-color: var(--color-hud-line) var(--color-lb);
+	}
+	.store ::selection {
+		background: var(--color-caution);
+		color: var(--color-lb);
+	}
+	.store :focus-visible {
+		outline: 2px solid var(--color-caution);
+		outline-offset: 3px;
+	}
+
+	/* Lectura OSD: dígitos segmentados en mayúsculas */
+	.osd {
+		font-family: var(--font-share-tech-mono), ui-monospace, monospace;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* Corchetes de esquina: el marco del visor, sin DOM extra.
+	   Longhands de background-image para que bg-* (color) conviva con los corchetes. */
+	/* Corchetes cerrados = selección o foco. Nada más los lleva en reposo
+	   (salvo el visor de la portada y la imagen en foco de la ficha). */
+	.vf-frame,
+	.vf-input,
+	.vf-btn-ghost {
+		--vf-c: var(--color-osd);
+		--vf-l: 14px;
+		--vf-t: 2px;
+		background-image:
+			linear-gradient(var(--vf-c) 0 0), linear-gradient(var(--vf-c) 0 0),
+			linear-gradient(var(--vf-c) 0 0), linear-gradient(var(--vf-c) 0 0),
+			linear-gradient(var(--vf-c) 0 0), linear-gradient(var(--vf-c) 0 0),
+			linear-gradient(var(--vf-c) 0 0), linear-gradient(var(--vf-c) 0 0);
+		background-position:
+			top left, top left, top right, top right,
+			bottom left, bottom left, bottom right, bottom right;
+		background-size:
+			var(--vf-l) var(--vf-t), var(--vf-t) var(--vf-l),
+			var(--vf-l) var(--vf-t), var(--vf-t) var(--vf-l),
+			var(--vf-l) var(--vf-t), var(--vf-t) var(--vf-l),
+			var(--vf-l) var(--vf-t), var(--vf-t) var(--vf-l);
+		background-repeat: no-repeat;
+	}
+	.vf-frame-lg { --vf-l: 36px; --vf-t: 3px; }
+	.vf-frame-caution { --vf-c: var(--color-caution); }
+
+	/* Foco: corchetes tenues en reposo que se cierran y encienden sobre el elemento */
+	.vf-focus {
+		--vf-c: transparent;
+		--vf-l: 22px;
+	}
+	/* Solo las tarjetas muestran corchetes tenues en reposo: el par cerrado sigue significando "seleccionado" */
+	article.vf-focus { --vf-c: var(--color-hud-line); --vf-l: 10px; }
+	.vf-focus:hover,
+	.vf-focus:focus-within {
+		--vf-c: var(--color-osd);
+		--vf-l: 16px;
+	}
+	.vf-focus.is-locked { --vf-c: var(--color-caution); --vf-l: 16px; }
+	/* En la tarjeta el "en carrito" tiene que leerse de lejos */
+	article.vf-focus.is-locked { --vf-l: 26px; --vf-t: 3px; }
+
+	/* Plato de imagen: el sujeto iluminado dentro del visor.
+	   Claro para que las fotos de proveedor con fondo blanco se integren (multiply). */
+	.vf-plate { background-color: #e6e9eb; color: #3f474c; }
+	.vf-plate img { mix-blend-mode: multiply; }
+	.vf-plate .zebra {
+		background-image: repeating-linear-gradient(-45deg, var(--color-lb) 0 6px, transparent 6px 14px);
+	}
+
+	/* Zebra: la única textura. Marca lo "sobreexpuesto": sin stock */
+	.zebra {
+		background-image: repeating-linear-gradient(
+			-45deg,
+			var(--color-osd) 0 6px,
+			transparent 6px 14px
+		);
+	}
+
+	/* Botones */
+	.vf-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		font-family: var(--font-share-tech-mono), ui-monospace, monospace;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		font-size: 0.875rem;
+		padding: 0.85rem 1.25rem;
+		cursor: pointer;
+	}
+	.vf-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+	.vf-btn-primary { background-color: var(--color-pj); color: #fff; }
+	.vf-btn-primary:not(:disabled):hover { background-color: var(--color-pj-hi); }
+	.vf-btn-ghost { color: var(--color-osd); border: 1px solid var(--color-hud-line); --vf-c: transparent; --vf-l: 12px; }
+	.vf-btn-ghost:hover { --vf-c: var(--color-osd); }
+
+	/* Campos de formulario: filete inferior en reposo; los corchetes aparecen en ámbar solo con foco */
+	.vf-input {
+		--vf-c: transparent;
+		--vf-l: 10px;
+		box-shadow: inset 0 -1px 0 var(--color-osd-dim);
+		width: 100%;
+		background-color: var(--color-hud);
+		color: var(--color-osd);
+		padding: 0.8rem 1rem;
+		font-size: 0.9375rem;
+		outline: none;
+	}
+	.vf-input::placeholder { color: #8a9298; }
+	.vf-input:focus { --vf-c: var(--color-caution); --vf-l: 16px; }
+	.vf-label {
+		display: block;
+		margin-bottom: 0.4rem;
+		font-family: var(--font-share-tech-mono), ui-monospace, monospace;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		font-size: 0.75rem;
+		color: var(--color-osd-dim);
+	}
+
+	@keyframes vf-rec { 50% { opacity: 0.25; } }
+	.vf-rec { animation: vf-rec 1.6s steps(1, end) infinite; }
+	@media (prefers-reduced-motion: reduce) {
+		.vf-rec { animation: none; }
+	}
+}
+
 .scrollbar-none {
 	scrollbar-width: none;
 	-ms-overflow-style: none;

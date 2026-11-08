@@ -1,0 +1,44 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "wide-tracking",
+        "value": "*",
+        "files": [
+          ".impeccable/decision/challenger-viewfinder.html"
+        ],
+        "createdAt": "2026-11-08T00:35:17.829Z",
+        "reason": "Claude: throwaway decision-round sketch, not shipped; the tracking is on short uppercase OSD readouts"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/decision/assigned.html"
+        ],
+        "createdAt": "2026-11-08T00:49:19.161Z",
+        "reason": "Claude: throwaway decision-round sketch, not shipped; predates DESIGN.md"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/decision/model-pick.html"
+        ],
+        "createdAt": "2026-11-08T00:49:19.513Z",
+        "reason": "Claude: throwaway decision-round sketch, not shipped; predates DESIGN.md"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/decision/challenger-viewfinder.html"
+        ],
+        "createdAt": "2026-11-08T00:49:19.830Z",
+        "reason": "Claude: throwaway decision-round sketch, not shipped; predates DESIGN.md"
+      }
+    ]
+  }
+}

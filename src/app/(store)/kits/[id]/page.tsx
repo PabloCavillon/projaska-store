@@ -1,7 +1,8 @@
 import { getStoreKit } from "@/actions/store/kits.actions";
 import { AddToCartControls } from "@/components/store/add-to-cart-controls";
-import { ChevronLeft, Boxes, Package } from "lucide-react";
-import Image from "next/image";
+import { ViewfinderImage } from "@/components/store/viewfinder-image";
+import { fmtArs } from "@/lib/utils";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -36,9 +37,6 @@ export default async function KitDetailPage({ params }: { params: Promise<{ id: 
     const kit = await getStoreKit(id);
     if (!kit) notFound();
 
-    const fmtArs = (n: number) =>
-        n.toLocaleString("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
-
     const jsonLd = {
         "@context": "https://schema.org/",
         "@type": "Product",
@@ -55,79 +53,54 @@ export default async function KitDetailPage({ params }: { params: Promise<{ id: 
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-6xl mx-auto">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-            {/* Back */}
-            <Link
-                href="/"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors group"
-            >
-                <ChevronLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
-                Volver al catálogo
-            </Link>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-                {/* Image */}
-                <div className="w-full aspect-square bg-violet-50 rounded-3xl flex items-center justify-center overflow-hidden relative border border-violet-100">
-                    {kit.imageUrl ? (
-                        <Image
-                            src={kit.imageUrl}
-                            alt={kit.name}
-                            fill
-                            className="object-contain p-6"
-                            unoptimized
-                        />
-                    ) : (
-                        <Boxes size={64} className="text-violet-200" />
-                    )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-14 items-start">
+                <div className="md:sticky md:top-24">
+                    <ViewfinderImage src={kit.imageUrl} alt={kit.name} topLeft={kit.sku} topRight="Kit" bottomLeft={`${kit.items.length} componentes`} />
                 </div>
 
-                {/* Info */}
-                <div className="flex flex-col gap-5">
-                    <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider bg-violet-600 text-white px-2.5 py-1 rounded-full">
-                            Kit
-                        </span>
-                        <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight leading-tight mt-3">
-                            {kit.name}
-                        </h1>
-                        <p className="text-xs font-mono text-gray-400 uppercase tracking-widest mt-1">#{kit.sku}</p>
-                    </div>
+                <div className="flex flex-col gap-7">
+                    <Link href="/#ch-kits" className="osd text-xs text-osd-dim hover:text-osd w-fit inline-flex items-center gap-2">
+                        <ArrowLeft size={14} aria-hidden="true" /> Volver a kits
+                    </Link>
+
+                    <h1 className="text-3xl sm:text-4xl leading-tight text-balance">{kit.name}</h1>
 
                     {kit.description && (
-                        <div className="text-sm text-gray-600 leading-relaxed border-t border-gray-100 pt-4">
+                        <p className="text-base text-osd-dim leading-relaxed whitespace-pre-line max-w-[65ch]">
                             {kit.description}
-                        </div>
+                        </p>
                     )}
 
-                    {/* Kit contents */}
-                    <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 space-y-3">
-                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-                            Incluye
-                        </p>
-                        <ul className="space-y-2">
+                    <div className="border-t border-hud-line pt-6">
+                        <p className="vf-label">Incluye</p>
+                        <ul className="divide-y divide-hud-line border-y border-hud-line">
                             {kit.items.map((item, i) => (
-                                <li key={i} className="flex items-center gap-3">
-                                    <div className="w-7 h-7 rounded-lg bg-white border border-gray-100 flex items-center justify-center shrink-0">
-                                        <Package size={12} className="text-gray-400" />
-                                    </div>
-                                    <span className="text-sm text-gray-700 font-medium flex-1">
-                                        {item.productName ?? item.childKitName}
-                                    </span>
-                                    <span className="text-xs font-semibold text-gray-400 bg-white border border-gray-100 px-2 py-0.5 rounded-lg">
-                                        ×{item.quantity}
-                                    </span>
+                                <li key={i}>
+                                    {item.productId ? (
+                                        <Link href={`/products/${item.productId}`} className="group flex items-center gap-4 py-3 min-h-11 hover:text-pj-ink">
+                                            <span className="osd text-osd-dim tabular-nums w-10 shrink-0">{item.quantity}×</span>
+                                            <span className="flex-1 underline-offset-4 group-hover:underline">{item.productName}</span>
+                                            <ArrowRight size={14} className="text-osd-dim shrink-0" aria-hidden="true" />
+                                        </Link>
+                                    ) : (
+                                        <div className="flex items-center gap-4 py-3">
+                                            <span className="osd text-osd-dim tabular-nums w-10 shrink-0">{item.quantity}×</span>
+                                            <span className="flex-1">{item.childKitName}</span>
+                                        </div>
+                                    )}
                                 </li>
                             ))}
                         </ul>
                     </div>
 
-                    {/* Price */}
-                    <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4">
-                        <p className="text-3xl font-black text-gray-900 leading-none">{fmtArs(kit.priceArs)}</p>
+                    <div className="space-y-1">
+                        <p className="vf-label">Precio ARS</p>
+                        <p className="osd text-5xl leading-none">{fmtArs(kit.priceArs)}</p>
                     </div>
 
                     {/* Controles de carrito */}
@@ -145,11 +118,8 @@ export default async function KitDetailPage({ params }: { params: Promise<{ id: 
                         }}
                     />
 
-                    <Link
-                        href="/cart"
-                        className="text-center text-sm text-gray-400 hover:text-gray-700 transition-colors"
-                    >
-                        Ver carrito
+                    <Link href="/cart" className="osd text-xs text-osd-dim hover:underline underline-offset-4 w-fit inline-flex items-center gap-2">
+                        Ver carrito <ArrowRight size={16} aria-hidden="true" />
                     </Link>
                 </div>
             </div>

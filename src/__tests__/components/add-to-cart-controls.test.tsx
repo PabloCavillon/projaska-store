@@ -50,7 +50,7 @@ describe("AddToCartControls", () => {
         const user = setup();
         await user.click(screen.getByRole("button", { name: /agregar al carrito/i }));
         // El span de cantidad muestra "1"
-        expect(screen.getByText("1")).toBeTruthy();
+        expect(screen.getByDisplayValue("1")).toBeTruthy();
     });
 
     it("incrementa la cantidad al hacer click en el botón +", async () => {
@@ -59,7 +59,7 @@ describe("AddToCartControls", () => {
         const buttons = screen.getAllByRole("button");
         const plusButton = buttons[1]; // [0]=Trash/Minus, [1]=Plus
         await user.click(plusButton);
-        expect(screen.getByText("2")).toBeTruthy();
+        expect(screen.getByDisplayValue("2")).toBeTruthy();
     });
 
     it("elimina el ítem al hacer click en la papelera (quantity=1)", async () => {
@@ -78,10 +78,10 @@ describe("AddToCartControls", () => {
         // Agregar una vez más para tener quantity=2
         const buttons = screen.getAllByRole("button");
         await user.click(buttons[1]); // Plus → quantity 2
-        expect(screen.getByText("2")).toBeTruthy();
+        expect(screen.getByDisplayValue("2")).toBeTruthy();
         // Ahora el primer botón es − (no papelera)
         const buttonsNow = screen.getAllByRole("button");
         await user.click(buttonsNow[0]); // Minus → quantity 1
-        expect(screen.getByText("1")).toBeTruthy();
+        expect(screen.getByDisplayValue("1")).toBeTruthy();
     });
 });

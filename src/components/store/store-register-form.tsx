@@ -7,14 +7,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/store-auth";
 import { Loader2 } from "lucide-react";
 
-const labelClass = "text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-1.5 block";
-const inputClass = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 transition-all outline-none focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20 placeholder:text-gray-300";
+const labelClass = "vf-label";
+const inputClass = "vf-input";
 
 interface StoreRegisterFormProps {
     action: (data: RegisterFormData) => Promise<{ error: string } | { redirectTo: string }>;
+    redirectTo?: string;
 }
 
-export default function StoreRegisterForm({ action }: StoreRegisterFormProps) {
+export default function StoreRegisterForm({ action, redirectTo }: StoreRegisterFormProps) {
     const router = useRouter();
     const [serverError, setServerError] = useState<string | null>(null);
 
@@ -24,7 +25,7 @@ export default function StoreRegisterForm({ action }: StoreRegisterFormProps) {
         formState: { errors, isSubmitting },
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema),
-        defaultValues: { name: "", email: "", phone: "", password: "", confirmPassword: "" },
+        defaultValues: { name: "", email: "", phone: "", password: "", confirmPassword: "", redirect: redirectTo },
     });
 
     const onSubmit = async (data: RegisterFormData) => {
@@ -43,23 +44,24 @@ export default function StoreRegisterForm({ action }: StoreRegisterFormProps) {
 
     return (
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+            <input type="hidden" {...register("redirect")} />
 
             <div>
                 <label className={labelClass} htmlFor="name">Nombre completo</label>
                 <input id="name" type="text" autoComplete="name" className={inputClass} placeholder="Juan Pérez" {...register("name")} />
-                {errors.name && <p className="text-xs text-red-500 mt-1.5">{errors.name.message}</p>}
+                {errors.name && <p className="text-xs text-caution mt-1.5">{errors.name.message}</p>}
             </div>
 
             <div>
                 <label className={labelClass} htmlFor="email">Email</label>
                 <input id="email" type="email" autoComplete="email" className={inputClass} placeholder="tu@email.com" {...register("email")} />
-                {errors.email && <p className="text-xs text-red-500 mt-1.5">{errors.email.message}</p>}
+                {errors.email && <p className="text-xs text-caution mt-1.5">{errors.email.message}</p>}
             </div>
 
             <div>
                 <label className={labelClass} htmlFor="phone">
                     Teléfono{" "}
-                    <span className="normal-case font-normal text-gray-400">(opcional)</span>
+                    <span className="normal-case tracking-normal font-sans text-osd-dim">(opcional)</span>
                 </label>
                 <input id="phone" type="tel" autoComplete="tel" className={inputClass} placeholder="+54 261 000-0000" {...register("phone")} />
             </div>
@@ -67,17 +69,17 @@ export default function StoreRegisterForm({ action }: StoreRegisterFormProps) {
             <div>
                 <label className={labelClass} htmlFor="password">Contraseña</label>
                 <input id="password" type="password" autoComplete="new-password" className={inputClass} placeholder="Mínimo 8 caracteres" {...register("password")} />
-                {errors.password && <p className="text-xs text-red-500 mt-1.5">{errors.password.message}</p>}
+                {errors.password && <p className="text-xs text-caution mt-1.5">{errors.password.message}</p>}
             </div>
 
             <div>
                 <label className={labelClass} htmlFor="confirmPassword">Confirmar contraseña</label>
                 <input id="confirmPassword" type="password" autoComplete="new-password" className={inputClass} placeholder="Repetí tu contraseña" {...register("confirmPassword")} />
-                {errors.confirmPassword && <p className="text-xs text-red-500 mt-1.5">{errors.confirmPassword.message}</p>}
+                {errors.confirmPassword && <p className="text-xs text-caution mt-1.5">{errors.confirmPassword.message}</p>}
             </div>
 
             {serverError && (
-                <div className="text-red-600 text-sm bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                <div className="border border-caution text-caution text-sm px-4 py-3" role="alert">
                     {serverError}
                 </div>
             )}
@@ -85,7 +87,7 @@ export default function StoreRegisterForm({ action }: StoreRegisterFormProps) {
             <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600 disabled:hover:shadow-none cursor-pointer text-white font-semibold py-3 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm mt-2"
+                className="vf-btn vf-btn-primary w-full mt-2"
             >
                 {isSubmitting ? <><Loader2 size={15} className="animate-spin" />Creando cuenta...</> : "Crear cuenta"}
             </button>

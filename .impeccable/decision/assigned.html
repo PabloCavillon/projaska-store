@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Ficha técnica</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F3F5F6;--ink:#0D1317;--blue:#1479BC;--rule:#C5CED4;--muted:#5E6A72;--red:#D23A1F}
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;background:var(--paper);color:var(--ink);font-family:Archivo,sans-serif;overflow:hidden}
+.mono{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.04em;color:var(--muted)}
+nav{display:grid;grid-template-columns:repeat(12,1fr);align-items:center;height:64px;padding:0 48px;border-bottom:1px solid var(--ink)}
+nav .brand{grid-column:span 3;display:flex;gap:10px;align-items:center;font-weight:800;font-stretch:115%;letter-spacing:.02em}
+nav .brand i{width:22px;height:22px;border-radius:50%;background:var(--blue)}
+nav .links{grid-column:span 6;display:flex;gap:28px;font-size:14px}
+nav .cart{grid-column:span 3;text-align:right;font-size:14px}
+.head{display:grid;grid-template-columns:repeat(12,1fr);padding:40px 48px 0;gap:0 24px}
+.title{grid-column:span 7}
+.title .mono{display:block;margin-bottom:18px}
+h1{font-size:112px;line-height:.88;font-weight:850;font-stretch:120%;letter-spacing:-.02em}
+h1 span{color:var(--blue)}
+.lede{margin-top:24px;font-size:19px;max-width:520px;line-height:1.4}
+table{grid-column:span 5;border-collapse:collapse;align-self:end;font-size:15px}
+td{border-top:1px solid var(--rule);padding:13px 0;vertical-align:top}
+tr:last-child td{border-bottom:1px solid var(--ink)}
+td:first-child{width:70px}
+td:last-child{color:var(--muted)}
+.kit{margin:44px 48px 0;border-top:2px solid var(--ink);display:grid;grid-template-columns:repeat(12,1fr);gap:24px;padding-top:20px}
+.kit .img{grid-column:span 4;height:230px;background:#E3E8EB;display:grid;place-items:center}
+.kit .img b{width:140px;height:90px;border:1px solid var(--muted);border-radius:4px}
+.spec{grid-column:span 5}
+.spec h2{font-size:34px;font-weight:800;font-stretch:110%;margin:6px 0 14px}
+.spec li{list-style:none;display:flex;justify-content:space-between;border-top:1px solid var(--rule);padding:8px 0;font-size:14px}
+.buy{grid-column:span 3;display:flex;flex-direction:column;justify-content:space-between}
+.price{font-size:44px;font-weight:800;font-stretch:105%}
+.stock{font-size:14px}.stock b{color:var(--blue)}
+button{background:var(--blue);color:#fff;border:0;font:700 16px Archivo;padding:18px;text-align:left}
+</style></head><body>
+<nav><div class="brand"><i></i>PROJASKA</div><div class="links"><span>Kits</span><span>Cámaras</span><span>Alarmas</span><span>Cerraduras</span><span>Instalación</span></div><div class="cart">Ingresar &nbsp;·&nbsp; Carrito (2)</div></nav>
+<section class="head">
+ <div class="title"><span class="mono">FICHA PJK-00 · TECNOLOGÍA Y SEGURIDAD · AR</span>
+  <h1>Seguridad<br>que se <span>instala</span><br>completa.</h1>
+  <p class="lede">Kits armados, asesoramiento técnico y la instalación del mismo equipo que te lo vende.</p></div>
+ <table>
+  <tr><td class="mono">01</td><td>Kits armados</td><td>Cámara, grabador y disco en un solo SKU</td></tr>
+  <tr><td class="mono">02</td><td>Asesoramiento</td><td>Te ayudamos a elegir por WhatsApp</td></tr>
+  <tr><td class="mono">03</td><td>Instalación</td><td>Instalamos lo que vendemos</td></tr>
+  <tr><td class="mono">04</td><td>Stock real</td><td>Precio en pesos, al día</td></tr>
+ </table>
+</section>
+<section class="kit">
+ <div class="img"><b></b></div>
+ <div class="spec"><span class="mono">KIT DESTACADO · KIT-CCTV-4 · datos de ejemplo</span><h2>Kit CCTV 4 cámaras</h2>
+  <ul><li><span>Cámara bullet 2MP</span><span class="mono">×4</span></li><li><span>DVR 4 canales</span><span class="mono">×1</span></li><li><span>Disco 1TB</span><span class="mono">×1</span></li></ul></div>
+ <div class="buy"><div><div class="mono">PRECIO ARS</div><div class="price">$ 412.900</div><div class="stock"><b>8 u.</b> en stock</div></div><button>Agregar al carrito →</button></div>
+</section>
+</body></html>

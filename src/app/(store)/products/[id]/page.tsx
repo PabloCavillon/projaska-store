@@ -1,7 +1,6 @@
 import { getStoreProduct } from "@/actions/store/products.actions";
 import { ProductDetailClient } from "@/components/store/product-detail-client";
-import { Package } from "lucide-react";
-import Image from "next/image";
+import { ViewfinderImage } from "@/components/store/viewfinder-image";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -53,25 +52,21 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-4">
+        <div className="max-w-6xl mx-auto">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-                {/* Imagen */}
-                <div className="w-full aspect-square bg-gray-50 rounded-3xl flex items-center justify-center overflow-hidden relative border border-gray-100 md:mt-8">
-                    {product.imageUrl ? (
-                        <Image
-                            src={product.imageUrl}
-                            alt={product.name}
-                            fill
-                            className="object-contain p-6"
-                            unoptimized
-                        />
-                    ) : (
-                        <Package size={64} className="text-gray-200" />
-                    )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-14 items-start">
+                <div className="md:sticky md:top-24">
+                    <ViewfinderImage
+                        src={product.imageUrl}
+                        alt={product.name}
+                        topLeft={product.sku}
+                        topRight={product.offerDiscountPct !== null && product.offerUnit !== null ? `−${product.offerDiscountPct}%` : undefined}
+                        bottomLeft={product.category}
+                        dim={product.stock === 0 && !product.isMadeToOrder}
+                    />
                 </div>
 
                 {/* Info + controles (client) — incluye botón volver */}

@@ -21,7 +21,6 @@ const ROLE_ROUTES: Record<string, string[]> = {
 const STORE_PROTECTED_ROUTES = [
 	"/orders",
 	"/checkout",
-	"/cart",
 ];
 
 const ADMIN_PREFIX = "/admin";

@@ -1,7 +1,8 @@
 'use client';
 
 import { useCart, CartItem } from "@/contexts/cart-context";
-import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { QtyStepper } from "./vf-parts";
+import { ArrowRight } from "lucide-react";
 
 interface Props {
     item: Omit<CartItem, "quantity">;
@@ -14,27 +15,21 @@ export function AddToCartControls({ item, maxQuantity }: Props) {
     const atMax = maxQuantity !== undefined && inCart !== undefined && inCart.quantity >= maxQuantity;
 
     if (inCart) {
+        const unitLabel = item.unit === "box"
+            ? `caja${inCart.quantity !== 1 ? "s" : ""}`
+            : `unidad${inCart.quantity !== 1 ? "es" : ""}`;
         return (
-            <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3 bg-gray-50 rounded-2xl p-1.5">
-                    <button
-                        onClick={() => updateQuantity(item.cartKey, inCart.quantity - 1)}
-                        className="w-10 h-10 rounded-xl border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all cursor-pointer"
-                    >
-                        {inCart.quantity === 1 ? <Trash2 size={15} /> : <Minus size={15} />}
-                    </button>
-                    <span className="w-8 text-center text-lg font-black text-gray-900">{inCart.quantity}</span>
-                    <button
-                        onClick={() => updateQuantity(item.cartKey, inCart.quantity + 1)}
-                        disabled={atMax}
-                        className="w-10 h-10 rounded-xl border border-indigo-200 bg-indigo-50 flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                        <Plus size={15} />
-                    </button>
-                </div>
-                <span className="text-sm text-gray-500 font-medium">
-                    {inCart.quantity} {item.unit === "box" ? `caja${inCart.quantity !== 1 ? "s" : ""}` : `unidad${inCart.quantity !== 1 ? "es" : ""}`} en el carrito
-                    {atMax && <span className="block text-xs text-orange-500 font-bold">Máximo disponible</span>}
+            <div className="flex items-center gap-4 flex-wrap">
+                <QtyStepper
+                    quantity={inCart.quantity}
+                    onChange={(q) => updateQuantity(item.cartKey, q)}
+                    max={maxQuantity}
+                    size="lg"
+                    label={item.name}
+                />
+                <span className="osd text-sm text-osd-dim">
+                    {inCart.quantity} {unitLabel} en el carrito
+                    {atMax && <span className="block text-caution">Máximo disponible</span>}
                 </span>
             </div>
         );
@@ -42,25 +37,16 @@ export function AddToCartControls({ item, maxQuantity }: Props) {
 
     if (maxQuantity !== undefined && maxQuantity <= 0) {
         return (
-            <div className="w-full flex items-center justify-center py-4 rounded-2xl border-2 border-dashed border-gray-200">
-                <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Sin stock disponible</span>
+            <div className="relative flex items-center justify-center py-4 border border-hud-line overflow-hidden">
+                <span className="zebra absolute inset-0 opacity-15" aria-hidden="true" />
+                <span className="osd relative text-sm text-osd bg-lb px-3">Sin stock disponible</span>
             </div>
         );
     }
 
-    const isMadeToOrder = item.isMadeToOrder ?? false;
-
     return (
-        <button
-            onClick={() => addItem(item)}
-            className={`flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-semibold text-base hover:-translate-y-0.5 hover:shadow-lg transition-all active:scale-[0.98] cursor-pointer ${
-                isMadeToOrder
-                    ? "bg-amber-500 text-white hover:bg-amber-400 hover:shadow-amber-200"
-                    : "bg-indigo-600 text-white hover:bg-indigo-500 hover:shadow-indigo-200"
-            }`}
-        >
-            <ShoppingCart size={17} />
-            {isMadeToOrder ? "Pedir por encargo" : "Agregar al carrito"}
+        <button onClick={() => addItem(item)} className="vf-btn vf-btn-primary w-full sm:w-auto px-6 sm:px-10 py-4 text-base whitespace-nowrap">
+            {item.isMadeToOrder ? "Pedir por encargo" : "Agregar al carrito"} <ArrowRight size={16} aria-hidden="true" />
         </button>
     );
 }

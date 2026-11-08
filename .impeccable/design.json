@@ -1,0 +1,364 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-08T00:50:12.964Z",
+  "title": "Design System: Projaska",
+  "extensions": {
+    "colorMeta": {
+      "letterbox": {
+        "role": "neutral",
+        "displayName": "Letterbox Black",
+        "canonical": "#0a0a0a",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(26% 0.000 0)",
+          "oklch(37% 0.000 0)",
+          "oklch(48% 0.000 0)",
+          "oklch(59% 0.000 0)",
+          "oklch(70% 0.000 0)",
+          "oklch(82% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "hud": {
+        "role": "neutral",
+        "displayName": "HUD Gray",
+        "canonical": "#16191c",
+        "tonalRamp": [
+          "oklch(15% 0.001 240)",
+          "oklch(26% 0.003 240)",
+          "oklch(37% 0.005 240)",
+          "oklch(48% 0.006 240)",
+          "oklch(59% 0.006 240)",
+          "oklch(70% 0.006 240)",
+          "oklch(82% 0.004 240)",
+          "oklch(95% 0.001 240)"
+        ]
+      },
+      "hud-line": {
+        "role": "neutral",
+        "displayName": "HUD Line",
+        "canonical": "#2a2f33",
+        "tonalRamp": [
+          "oklch(15% 0.001 235)",
+          "oklch(26% 0.004 235)",
+          "oklch(37% 0.007 235)",
+          "oklch(48% 0.008 235)",
+          "oklch(59% 0.008 235)",
+          "oklch(70% 0.008 235)",
+          "oklch(82% 0.005 235)",
+          "oklch(95% 0.001 235)"
+        ]
+      },
+      "osd": {
+        "role": "neutral",
+        "displayName": "OSD White",
+        "canonical": "#f2f4f5",
+        "tonalRamp": [
+          "oklch(15% 0.001 220)",
+          "oklch(26% 0.002 220)",
+          "oklch(37% 0.003 220)",
+          "oklch(48% 0.003 220)",
+          "oklch(59% 0.003 220)",
+          "oklch(70% 0.003 220)",
+          "oklch(82% 0.002 220)",
+          "oklch(95% 0.001 220)"
+        ]
+      },
+      "osd-dim": {
+        "role": "neutral",
+        "displayName": "OSD Dim",
+        "canonical": "#9aa2a8",
+        "tonalRamp": [
+          "oklch(15% 0.002 230)",
+          "oklch(26% 0.006 230)",
+          "oklch(37% 0.011 230)",
+          "oklch(48% 0.012 230)",
+          "oklch(59% 0.012 230)",
+          "oklch(70% 0.012 230)",
+          "oklch(82% 0.007 230)",
+          "oklch(95% 0.002 230)"
+        ]
+      },
+      "caution": {
+        "role": "secondary",
+        "displayName": "Caution Amber",
+        "canonical": "#ffb000",
+        "tonalRamp": [
+          "oklch(15% 0.028 75)",
+          "oklch(26% 0.091 75)",
+          "oklch(37% 0.153 75)",
+          "oklch(48% 0.170 75)",
+          "oklch(59% 0.170 75)",
+          "oklch(70% 0.170 75)",
+          "oklch(82% 0.102 75)",
+          "oklch(95% 0.028 75)"
+        ]
+      },
+      "pj": {
+        "role": "primary",
+        "displayName": "Lens Blue",
+        "canonical": "#1479bc",
+        "tonalRamp": [
+          "oklch(15% 0.023 245)",
+          "oklch(26% 0.075 245)",
+          "oklch(37% 0.126 245)",
+          "oklch(48% 0.140 245)",
+          "oklch(59% 0.140 245)",
+          "oklch(70% 0.140 245)",
+          "oklch(82% 0.084 245)",
+          "oklch(95% 0.023 245)"
+        ]
+      },
+      "pj-hi": {
+        "role": "primary",
+        "displayName": "Lens Blue Lit",
+        "canonical": "#2690d6",
+        "tonalRamp": [
+          "oklch(15% 0.023 245)",
+          "oklch(26% 0.075 245)",
+          "oklch(37% 0.126 245)",
+          "oklch(48% 0.140 245)",
+          "oklch(59% 0.140 245)",
+          "oklch(70% 0.140 245)",
+          "oklch(82% 0.084 245)",
+          "oklch(95% 0.023 245)"
+        ]
+      },
+      "pj-ink": {
+        "role": "primary",
+        "displayName": "Lens Blue Ink",
+        "canonical": "#5fb2e8",
+        "tonalRamp": [
+          "oklch(15% 0.018 240)",
+          "oklch(26% 0.059 240)",
+          "oklch(37% 0.099 240)",
+          "oklch(48% 0.110 240)",
+          "oklch(59% 0.110 240)",
+          "oklch(70% 0.110 240)",
+          "oklch(82% 0.066 240)",
+          "oklch(95% 0.018 240)"
+        ]
+      },
+      "plate": {
+        "role": "neutral",
+        "displayName": "Plate",
+        "canonical": "#e6e9eb",
+        "tonalRamp": [
+          "oklch(15% 0.001 220)",
+          "oklch(26% 0.002 220)",
+          "oklch(37% 0.004 220)",
+          "oklch(48% 0.004 220)",
+          "oklch(59% 0.004 220)",
+          "oklch(70% 0.004 220)",
+          "oklch(82% 0.002 220)",
+          "oklch(95% 0.001 220)"
+        ]
+      },
+      "plate-ink": {
+        "role": "neutral",
+        "displayName": "Plate Ink",
+        "canonical": "#3f474c",
+        "tonalRamp": [
+          "oklch(15% 0.002 230)",
+          "oklch(26% 0.005 230)",
+          "oklch(37% 0.009 230)",
+          "oklch(48% 0.010 230)",
+          "oklch(59% 0.010 230)",
+          "oklch(70% 0.010 230)",
+          "oklch(82% 0.006 230)",
+          "oklch(95% 0.002 230)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Home viewfinder headline only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles (cart, login, orders, order code)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Channel section heads, after a dim CHnn index."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Explanatory prose in Geist."
+      },
+      "body-sm": {
+        "displayName": "Body Small",
+        "purpose": "Product and kit names on cards, two-line clamp."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Form labels and button text, uppercase."
+      },
+      "readout": {
+        "displayName": "Readout",
+        "purpose": "Stock, counts, dates, channel items, footer; tabular."
+      },
+      "readout-xs": {
+        "displayName": "Readout XS",
+        "purpose": "Card corner readouts (SKU, tags, struck price). Size floor."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "cut",
+        "value": "none",
+        "purpose": "All state changes are single-frame cuts; no transitions on color, size or height."
+      },
+      {
+        "name": "rec-blink",
+        "value": "vf-rec 1.6s steps(1, end) infinite (opacity 0.25 at 50%)",
+        "purpose": "REC dot only; disabled under prefers-reduced-motion."
+      }
+    ],
+    "focus": {
+      "value": "outline: 2px solid #ffb000; outline-offset: 3px",
+      "purpose": "Keyboard focus-visible across .store."
+    },
+    "texture": {
+      "name": "zebra",
+      "value": "repeating-linear-gradient(-45deg, #f2f4f5 0 6px, transparent 6px 14px)",
+      "onPlate": "repeating-linear-gradient(-45deg, #0a0a0a 0 6px, transparent 6px 14px)",
+      "purpose": "Out of stock only."
+    },
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      },
+      {
+        "name": "container",
+        "value": "1440px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single action fill: add to cart, checkout, coordinate.",
+      "html": "<button class=\"ds-btn-primary\">Agregar al carrito</button>",
+      "css": ".ds-btn-primary{--c:rgb(255 255 255/.7);--l:9px;--t:2px;background-image:linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0);background-position:top left,top left,top right,top right,bottom left,bottom left,bottom right,bottom right;background-size:var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l);background-repeat:no-repeat;display:inline-flex;align-items:center;gap:.5rem;font-family:'Share Tech Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;font-size:.875rem;padding:.85rem 1.25rem;background-color:#1479bc;color:#fff;border:0;border-radius:0;cursor:pointer}.ds-btn-primary:hover{background-color:#2690d6;--c:#fff}.ds-btn-primary:focus-visible{outline:2px solid #ffb000;outline-offset:3px}.ds-btn-primary:disabled{opacity:.4;cursor:not-allowed}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action; brackets appear on hover.",
+      "html": "<button class=\"ds-btn-ghost\">Pedir asesoramiento</button>",
+      "css": ".ds-btn-ghost{--c:transparent;--l:14px;--t:2px;background-image:linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0);background-position:top left,top left,top right,top right,bottom left,bottom left,bottom right,bottom right;background-size:var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l);background-repeat:no-repeat;display:inline-flex;align-items:center;font-family:'Share Tech Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;font-size:.875rem;padding:.85rem 1.25rem;background-color:#0a0a0a;color:#f2f4f5;border:0;border-radius:0;cursor:pointer}.ds-btn-ghost:hover{--c:#f2f4f5;--l:20px}.ds-btn-ghost:focus-visible{outline:2px solid #ffb000;outline-offset:3px}"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Bracketed field; amber brackets on focus.",
+      "html": "<label class=\"ds-label\">Email<input class=\"ds-input\" placeholder=\"vos@ejemplo.com\"></label>",
+      "css": ".ds-label{display:block;font-family:'Share Tech Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;font-size:.75rem;color:#9aa2a8;background:#0a0a0a;padding:8px}.ds-input{--c:#9aa2a8;--l:10px;--t:2px;background-image:linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0);background-position:top left,top left,top right,top right,bottom left,bottom left,bottom right,bottom right;background-size:var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l);background-repeat:no-repeat;display:block;margin-top:.4rem;width:100%;background-color:#16191c;color:#f2f4f5;caret-color:#ffb000;padding:.8rem 1rem;font:400 .9375rem Geist,system-ui,sans-serif;text-transform:none;letter-spacing:0;border:0;border-radius:0;outline:none}.ds-input::placeholder{color:#8a9298}.ds-input:focus{--c:#ffb000;--l:16px}"
+    },
+    {
+      "name": "Product Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Dim brackets at rest, white on hover, amber when in cart.",
+      "html": "<article class=\"ds-card\" tabindex=\"0\"><div class=\"ds-plate\"><span class=\"ds-ro\">CAM-2MP-01</span></div><p class=\"ds-name\">Cámara domo 2MP exterior</p><span class=\"ds-ro ds-dim\">Stock 12</span><p class=\"ds-price\">$ 48.900</p></article>",
+      "css": ".ds-card{--c:#2a2f33;--l:10px;--t:2px;background-image:linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0);background-position:top left,top left,top right,top right,bottom left,bottom left,bottom right,bottom right;background-size:var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l);background-repeat:no-repeat;display:flex;flex-direction:column;gap:12px;width:220px;padding:16px;background-color:#0a0a0a;color:#f2f4f5;border-radius:0}.ds-card:hover,.ds-card:focus-within,.ds-card:focus-visible{--c:#f2f4f5;--l:16px;outline:none}.ds-card.is-locked{--c:#ffb000;--l:16px}.ds-plate{position:relative;aspect-ratio:1;background:#e6e9eb;color:#3f474c}.ds-plate .ds-ro{position:absolute;top:8px;left:8px}.ds-ro{font-family:'Share Tech Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em;font-size:11px;font-variant-numeric:tabular-nums}.ds-dim{color:#9aa2a8}.ds-name{margin:0;font:400 .875rem/1.375 Geist,system-ui,sans-serif}.ds-price{margin:0;font-family:'Share Tech Mono',monospace;font-size:1.25rem;line-height:1}"
+    },
+    {
+      "name": "Channel Bar",
+      "kind": "nav",
+      "refersTo": "channel-item",
+      "description": "Category channels with a CH nn/NN counter; active locked in amber.",
+      "html": "<nav class=\"ds-ch\"><span class=\"ds-ch-n\">CH 02/07</span><a class=\"ds-ch-i\" href=\"#\">Kits</a><a class=\"ds-ch-i is-locked\" href=\"#\">Cámaras</a><a class=\"ds-ch-i\" href=\"#\">Alarmas</a></nav>",
+      "css": ".ds-ch{display:flex;align-items:center;gap:16px;height:48px;padding:0 16px;background:#0a0a0a;border-top:1px solid #2a2f33;border-bottom:1px solid #2a2f33;font-family:'Share Tech Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em}.ds-ch-n{font-size:.875rem;color:#f2f4f5;font-variant-numeric:tabular-nums}.ds-ch-i{--c:transparent;--l:22px;--t:2px;background-image:linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0),linear-gradient(var(--c) 0 0);background-position:top left,top left,top right,top right,bottom left,bottom left,bottom right,bottom right;background-size:var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l),var(--l) var(--t),var(--t) var(--l);background-repeat:no-repeat;font-size:.75rem;padding:6px 10px;color:#9aa2a8;text-decoration:none}.ds-ch-i:hover,.ds-ch-i:focus-visible{--c:#f2f4f5;--l:16px;color:#f2f4f5;outline:none}.ds-ch-i.is-locked{--c:#ffb000;--l:16px;color:#f2f4f5}"
+    },
+    {
+      "name": "Stock Readout",
+      "kind": "chip",
+      "description": "Stock as data: dim, amber at low/made-to-order, zebra when out.",
+      "html": "<div class=\"ds-stock\"><span class=\"ds-s\">Stock 12</span><span class=\"ds-s ds-amber\">Últimas 2</span><span class=\"ds-s ds-amber\">Por encargo</span><span class=\"ds-s\"><i class=\"ds-zebra\"></i>Sin stock</span></div>",
+      "css": ".ds-stock{display:flex;gap:20px;padding:12px;background:#0a0a0a}.ds-s{display:inline-flex;align-items:center;gap:8px;font-family:'Share Tech Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em;font-size:.75rem;color:#9aa2a8}.ds-amber{color:#ffb000}.ds-zebra{display:inline-block;width:24px;height:12px;background-image:repeating-linear-gradient(-45deg,#f2f4f5 0 6px,transparent 6px 14px)}"
+    },
+    {
+      "name": "Zoom Bar",
+      "kind": "custom",
+      "description": "W–T depth scale; amber tick marks the current view depth.",
+      "html": "<div class=\"ds-zoom\"><span>W</span><span class=\"ds-ticks\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"cur\"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>T</span></div>",
+      "css": ".ds-zoom{display:inline-flex;align-items:center;gap:8px;padding:12px;background:#0a0a0a;font-family:'Share Tech Mono',ui-monospace,monospace;text-transform:uppercase;font-size:.75rem;color:#9aa2a8}.ds-ticks{display:flex;align-items:center;gap:3px;height:14px}.ds-ticks i{width:1px;height:10px;background:#2a2f33}.ds-ticks i.on{background:rgb(255 176 0/.6)}.ds-ticks i.cur{width:3px;height:14px;background:#ffb000}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Viewfinder",
+    "overview": "The storefront is the store seen through a camera viewfinder. Letterbox black fills the ground, and the merchandise sits inside corner brackets the way a subject sits inside a focus frame. Facts that a camera would overlay (SKU, stock, component count, price, the reference dollar rate) are shown as on-screen-display readouts in the corners, in a segmented mono face. Persuasion comes from shown data, not from soft heroes, icon category tiles or shadowed cards.\n\nThe world is always dark and is scoped by the `.store` wrapper. The admin area keeps its own light/dark system and does not inherit these tokens. Density is high and catalog-like: a two to five column grid of tight cards, thin hairline dividers, and no decorative fill. The only texture is a 45° zebra stripe, and it means one thing: out of stock (overexposed).\n\nMotion behaves like a camera, not like an app. State changes are single-frame cuts. Brackets snap from one size and color to another with no color or height transitions, and the only animation is the REC dot, which blinks with stepped timing.",
+    "keyCharacteristics": [
+      "Corner brackets stand in for boxes, borders and focus rings. A closed amber pair means locked (selected or in the cart).",
+      "OSD readouts in Share Tech Mono, uppercase with tabular figures. Product names and running prose stay in Geist.",
+      "One action color, the logo blue. One caution color, amber, used only for named functional roles.",
+      "Square corners everywhere. The only round shapes are status and REC dots.",
+      "No shadows, no gradients, no fades."
+    ],
+    "rules": [
+      {
+        "name": "The Caution Amber Rule",
+        "body": "Amber marks only these: the zoom bar, low stock and made-to-order, locked (selected or in-cart) brackets, input focus brackets, error and caution messages, the required action on a PENDING order (the status itself stays white), and the keyboard focus outline. Decorative amber is banned.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Action Rule",
+        "body": "Lens Blue fills primary actions and nothing else. Secondary actions are ghost buttons with bracket hover.",
+        "section": "colors"
+      },
+      {
+        "name": "The Lit Plate Rule",
+        "body": "A product image sits on the light plate (with the photo multiplied into it) only when a photo exists, so supplier photos on white backgrounds merge into the plate. With no photo, the well stays HUD Gray with a dim lucide glyph at 40% opacity.",
+        "section": "colors"
+      },
+      {
+        "name": "The Readout Rule",
+        "body": "If a camera would overlay it (SKU, stock, count, price, rate, date, channel), it is OSD: uppercase, tabular figures and tracked. If a person reads it as a sentence or a name, it is Geist in normal case. Inside an OSD list, product names drop back to `normal-case tracking-normal font-sans`.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Lift Rule",
+        "body": "No `box-shadow`, no blur and no gradients used as fill. A state change moves the brackets, not the surface.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do frame selection, focus and the subject with corner brackets. Lock in-cart and active items with amber brackets.",
+      "Do show stock, counts, SKU and prices as OSD readouts with tabular figures.",
+      "Do put real photos on the light plate (#e6e9eb, multiply) and leave photo-less wells HUD Gray.",
+      "Do change state with single-frame cuts. Brackets snap to their new size and color.",
+      "Do scope every storefront rule under `.store`, and leave the admin's light/dark system alone.",
+      "Do keep OSD Dim at #9aa2a8 or lighter for any secondary text on letterbox black."
+    ],
+    "donts": [
+      "Don't use amber for decoration, emphasis or brand flavor. It is reserved for the listed caution and lock roles.",
+      "Don't add color, height or opacity transitions, fades or easing. The only animation is the stepped REC blink and the loading spinner.",
+      "Don't use shadows, rounded corners or boxed borders on cards. Brackets and hairlines carry the structure.",
+      "Don't use the zebra stripe for anything other than out of stock.",
+      "Don't show resting brackets on nav or channel items. Only cards bracket at rest.",
+      "Don't set OSD readouts below 11px.",
+      "Don't use the base Lens Blue as text on black. Use Lens Blue Ink."
+    ]
+  }
+}

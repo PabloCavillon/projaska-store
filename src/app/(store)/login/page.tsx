@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getStoreSession } from "@/lib/store-auth";
 import { loginStoreCustomer } from "@/actions/store/auth.actions";
 import StoreLoginForm from "@/components/store/store-login-form";
+import { safeRedirect } from "@/lib/utils";
 
 export const metadata = { title: "Ingresar", robots: { index: false } };
 
@@ -13,32 +15,25 @@ export default async function StoreLoginPage({ searchParams }: LoginPageProps) {
     const session = await getStoreSession();
     const params = await searchParams;
 
-    if (session) redirect(params.redirect ?? "/");
+    if (session) redirect(safeRedirect(params.redirect));
 
     return (
-        <div className="min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-12">
-            <div className="w-full max-w-sm">
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-                    <div className="mb-7 text-center">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center mx-auto mb-4">
-                            <span className="text-white font-black text-base">P</span>
-                        </div>
-                        <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-                            Bienvenido
-                        </h1>
-                        <p className="text-sm text-gray-400 mt-1">
-                            Ingresá a tu cuenta de Projaska
-                        </p>
+        <div className="flex items-center justify-center py-6 sm:py-12">
+            <div className="w-full max-w-md">
+                <div className="border border-hud-line px-6 py-8 sm:px-10 sm:py-10">
+                    <div className="mb-8">
+                        <h1 className="osd text-4xl">Ingresar</h1>
+                        <p className="text-sm text-osd-dim mt-2">{safeRedirect(params.redirect) === "/checkout" ? "Ingresá para enviar tu pedido. Tu carrito se mantiene." : "Accedé a tu cuenta para hacer y seguir pedidos."}</p>
                     </div>
 
-                    <StoreLoginForm action={loginStoreCustomer} redirectTo={params.redirect} />
+                    <StoreLoginForm action={loginStoreCustomer} redirectTo={safeRedirect(params.redirect)} />
                 </div>
 
-                <p className="mt-5 text-center text-sm text-gray-400">
+                <p className="mt-6 text-center text-sm text-osd-dim">
                     ¿No tenés cuenta?{" "}
-                    <a href="/register" className="text-indigo-600 hover:text-indigo-500 font-semibold transition-colors">
+                    <Link href={params.redirect ? `/register?redirect=${encodeURIComponent(safeRedirect(params.redirect))}` : "/register"} className="text-pj-ink hover:underline underline-offset-4">
                         Registrate gratis
-                    </a>
+                    </Link>
                 </p>
             </div>
         </div>

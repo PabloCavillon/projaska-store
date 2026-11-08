@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Visor</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;background:#0A0B0C;color:#F2F4F5;font-family:Archivo,sans-serif;overflow:hidden;position:relative}
+.frame{position:absolute;inset:70px 0;background:radial-gradient(circle at 60% 50%,#3A4146,#16191B 70%)}
+.mono{font-family:'JetBrains Mono',monospace;letter-spacing:.08em;font-size:14px}
+.c{position:absolute;width:40px;height:40px;border:3px solid #F2F4F5}
+.tl{top:100px;left:40px;border-right:0;border-bottom:0}.tr{top:100px;right:40px;border-left:0;border-bottom:0}
+.bl{bottom:100px;left:40px;border-right:0;border-top:0}.br{bottom:100px;right:40px;border-left:0;border-top:0}
+.focus{position:absolute;left:640px;top:280px;width:360px;height:300px}
+.focus i{position:absolute;width:24px;height:24px;border:2px solid #F2A516}
+.focus i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0}.focus i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0}.focus i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0}.focus i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0}
+.cam{position:absolute;left:720px;top:380px;width:200px;height:90px;background:#D9DDE0;border-radius:45px 8px 8px 45px}
+.top{position:absolute;top:24px;left:40px;right:40px;display:flex;justify-content:space-between;align-items:center}
+h1{position:absolute;left:96px;top:170px;font-size:88px;font-weight:800;line-height:.95;width:520px}
+.read{position:absolute;left:96px;bottom:140px}.read .p{font-size:40px;font-weight:800;margin-top:6px}
+.zoom{position:absolute;right:96px;top:170px;display:flex;gap:10px;align-items:center}.zoom b{width:160px;height:4px;background:#555;position:relative}.zoom b:after{content:'';position:absolute;left:0;width:60%;height:4px;background:#F2A516}
+button{position:absolute;right:96px;bottom:140px;background:#1479BC;color:#fff;border:0;font:700 16px Archivo;padding:18px 26px}
+</style></head><body>
+<div class="frame"></div>
+<div class="top"><span style="font-weight:800;letter-spacing:.06em">● PROJASKA</span><span class="mono">KITS · CÁMARAS · ALARMAS · CERRADURAS · CARRITO 2</span></div>
+<i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+<h1>Mirá todo.<br>Instalado.</h1>
+<div class="zoom mono">W <b></b> T</div>
+<div class="cam"></div>
+<div class="focus"><i></i><i></i><i></i><i></i></div>
+<div class="read mono">CH01 · CÁMARA BULLET 2MP · datos de ejemplo<div class="p">$ 64.500</div>STOCK 12</div>
+<button>Agregar al carrito →</button>
+</body></html>

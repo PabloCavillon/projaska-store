@@ -17,3 +17,8 @@ export function fmtArs(n: number): string {
     const formatted = abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     return `${sign}$ ${formatted}`;
 }
+/** Solo rutas internas: evita redirigir a otro dominio con ?redirect=//evil.com o https://... */
+export function safeRedirect(path: string | null | undefined, fallback = "/"): string {
+    if (!path || !path.startsWith("/") || path.startsWith("//") || path.startsWith("/\\")) return fallback;
+    return path;
+}

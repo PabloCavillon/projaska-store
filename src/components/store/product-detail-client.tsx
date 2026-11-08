@@ -2,11 +2,12 @@
 
 import { StoreProduct } from "@/actions/store/products.actions";
 import { AddToCartControls } from "@/components/store/add-to-cart-controls";
-import { fmtArs } from "@/lib/utils";
-import { Box, ChevronLeft, Package, Tag } from "lucide-react";
+import { cn, fmtArs } from "@/lib/utils";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { StockReadout } from "./vf-parts";
 
 export function ProductDetailClient({ product }: { product: StoreProduct }) {
     const router = useRouter();
@@ -40,91 +41,59 @@ export function ProductDetailClient({ product }: { product: StoreProduct }) {
             : product.stock;
 
     return (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-7">
             <button
-                onClick={() => router.back()}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors group cursor-pointer w-fit"
+                onClick={() => (window.history.length > 1 ? router.back() : router.push("/"))}
+                className="osd text-xs text-osd-dim hover:text-osd cursor-pointer w-fit inline-flex items-center gap-2"
             >
-                <ChevronLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
-                Volver
+                <ArrowLeft size={14} aria-hidden="true" /> Volver
             </button>
 
-            {/* Badges */}
-            <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest bg-gray-100 px-2.5 py-1 rounded-full">
-                    {product.category}
-                </span>
-                {product.stock > 0 ? (
-                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                        {product.stock} en stock
-                    </span>
-                ) : product.isMadeToOrder ? (
-                    <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                        Por encargo
-                    </span>
-                ) : (
-                    <span className="text-[10px] font-semibold text-red-500 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                        Sin stock
-                    </span>
-                )}
-                {product.offerDiscountPct !== null && product.offerUnit !== null && (
-                    <span className="flex items-center gap-1 text-[10px] font-semibold text-rose-600 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                        <Tag size={9} />
-                        -{product.offerDiscountPct}% por {product.offerUnit === "box" ? "caja" : "unidad"}
-                    </span>
-                )}
-            </div>
-
-            <div>
-                <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight leading-tight">
-                    {product.name}
-                </h1>
-                <p className="text-xs font-mono text-gray-400 uppercase tracking-widest mt-1">#{product.sku}</p>
+            <div className="space-y-3">
+                <h1 className="text-3xl sm:text-4xl leading-tight text-balance">{product.name}</h1>
+                <div className="flex items-center gap-4 flex-wrap text-sm">
+                    <StockReadout stock={product.stock} isMadeToOrder={product.isMadeToOrder} />
+                    {product.offerDiscountPct !== null && product.offerUnit !== null && (
+                        <span className="osd bg-osd text-lb px-2 py-0.5 text-xs">
+                            −{product.offerDiscountPct}% por {product.offerUnit === "box" ? "caja" : "unidad"}
+                        </span>
+                    )}
+                </div>
             </div>
 
             {product.description && (
-                <div className="text-sm text-gray-600 leading-relaxed border-t border-gray-100 pt-4 whitespace-pre-line">
+                <p className="text-base text-osd-dim leading-relaxed whitespace-pre-line max-w-[65ch] border-t border-hud-line pt-6">
                     {product.description}
-                </div>
+                </p>
             )}
 
-            {/* Unit selector */}
             {hasBox && (
                 <div>
-                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Presentación</p>
-                    <div className="flex rounded-xl border border-gray-200 overflow-hidden text-sm font-semibold max-w-xs bg-gray-50">
-                        <button
-                            onClick={() => setUnit("unit")}
-                            className={`flex-1 py-2.5 flex items-center justify-center gap-2 transition-colors cursor-pointer ${unit === "unit" ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"}`}
-                        >
-                            <Package size={13} />
-                            Por unidad
-                        </button>
-                        <button
-                            onClick={() => setUnit("box")}
-                            className={`flex-1 py-2.5 flex items-center justify-center gap-2 transition-colors cursor-pointer ${unit === "box" ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"}`}
-                        >
-                            <Box size={13} />
-                            Caja ×{product.unitsPerBox}
-                        </button>
+                    <p className="vf-label">Presentación</p>
+                    <div className="grid grid-cols-2 border border-hud-line osd text-sm max-w-xs" role="group" aria-label="Presentación">
+                        {(["unit", "box"] as const).map((u) => (
+                            <button
+                                key={u}
+                                onClick={() => setUnit(u)}
+                                aria-pressed={unit === u}
+                                className={cn("py-2.5 cursor-pointer", unit === u ? "bg-osd text-lb" : "text-osd-dim hover:text-osd")}
+                            >
+                                {u === "unit" ? "Por unidad" : `Caja ×${product.unitsPerBox}`}
+                            </button>
+                        ))}
                     </div>
                 </div>
             )}
 
-            {/* Price */}
-            <div className="bg-gray-50 rounded-2xl p-4 space-y-1 border border-gray-100">
-                {offerApplies && (
-                    <p className="text-sm text-gray-400 line-through">{fmtArs(regularPriceArs)}</p>
-                )}
-                <p className={`text-3xl font-black leading-none ${offerApplies ? "text-rose-600" : "text-gray-900"}`}>
-                    {fmtArs(displayPriceArs)}
-                </p>
+            <div className="border-t border-hud-line pt-6 space-y-1">
+                <p className="vf-label">Precio ARS</p>
+                {offerApplies && <p className="osd text-base text-osd-dim line-through">{fmtArs(regularPriceArs)}</p>}
+                <p className="osd text-5xl leading-none">{fmtArs(displayPriceArs)}</p>
                 {selectedUnit === "box" && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="osd text-xs text-osd-dim pt-2">
                         {offerApplies
                             ? `Oferta: ${fmtArs(product.offerPriceArs!)} por caja de ${product.unitsPerBox} unidades`
-                            : `${fmtArs(product.priceArs)} × ${product.unitsPerBox} unidades`
-                        }
+                            : `${fmtArs(product.priceArs)} × ${product.unitsPerBox} unidades`}
                     </p>
                 )}
             </div>
@@ -146,11 +115,8 @@ export function ProductDetailClient({ product }: { product: StoreProduct }) {
                 maxQuantity={maxQuantity}
             />
 
-            <Link
-                href="/cart"
-                className="text-center text-sm text-gray-400 hover:text-gray-700 transition-colors"
-            >
-                Ver carrito
+            <Link href="/cart" className="osd text-xs text-osd-dim hover:underline underline-offset-4 w-fit inline-flex items-center gap-2">
+                Ver carrito <ArrowRight size={16} aria-hidden="true" />
             </Link>
         </div>
     );

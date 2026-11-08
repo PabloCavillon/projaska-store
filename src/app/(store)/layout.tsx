@@ -2,7 +2,16 @@ import StoreNavbar from "@/components/store/store-navbar";
 import { CartProvider } from "@/contexts/cart-context";
 import { ServiceWorkerRegistrar } from "@/components/store/service-worker-registrar";
 import { getStoreSession } from "@/lib/store-auth";
+import { whatsappUrl } from "@/lib/store-contact";
 import { Metadata } from "next";
+import { Share_Tech_Mono } from "next/font/google";
+import { ArrowRight } from "lucide-react";
+
+const osdFont = Share_Tech_Mono({
+    variable: "--font-share-tech-mono",
+    weight: "400",
+    subsets: ["latin"],
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -27,13 +36,23 @@ export default async function StoreLayout({
     return (
         <CartProvider>
             <ServiceWorkerRegistrar />
-            <div className="min-h-screen flex flex-col bg-gray-50">
+            <div className={`store ${osdFont.variable} min-h-screen flex flex-col`}>
                 <StoreNavbar session={session} />
-                <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+                <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10">
                     {children}
                 </main>
-                <footer className="border-t border-gray-100 py-8 text-center text-[11px] text-gray-400 tracking-widest uppercase">
-                    © {new Date().getFullYear()} Projaska · Tecnología y Seguridad
+                <footer className="border-t border-hud-line">
+                    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-8 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between osd text-xs text-osd-dim">
+                        <span>© {new Date().getFullYear()} Projaska · Tecnología y seguridad</span>
+                        <a
+                            href={whatsappUrl("Hola! Quería hacer una consulta.")}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-osd inline-flex items-center gap-2"
+                        >
+                            Asesoramiento e instalación · WhatsApp <ArrowRight size={16} aria-hidden="true" />
+                        </a>
+                    </div>
                 </footer>
             </div>
         </CartProvider>

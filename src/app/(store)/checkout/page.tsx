@@ -21,7 +21,7 @@ export default async function CheckoutPage() {
     const isGuild = storeCustomer?.customer?.isGuild ?? false;
 
     return (
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-2xl mx-auto">
             <CheckoutClient
                 config={{
                     dollarRate: config.dollarRate,

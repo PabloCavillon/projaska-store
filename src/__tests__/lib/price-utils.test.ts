@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcPriceArs } from "@/lib/price-utils";
+import { calcPriceArs, calcDiscount } from "@/lib/price-utils";
 
 const base = { dollarRate: 1000, shippingPct: 10, profitPct: 20 };
 
@@ -39,5 +39,25 @@ describe("calcPriceArs", () => {
     it("escala linealmente con el precio USD", () => {
         const single = calcPriceArs(1, base);
         expect(calcPriceArs(5, base)).toBeCloseTo(single * 5);
+    });
+});
+
+describe("calcDiscount", () => {
+    const cfg = { guildDiscountPct: 15, volumeDiscountPct: 10, volumeThresholdArs: 500_000 };
+
+    it("sin gremio y bajo el umbral no descuenta", () => {
+        expect(calcDiscount(100_000, cfg, false)).toEqual({ pct: 0, type: null, amountArs: 0, totalArs: 100_000 });
+    });
+
+    it("aplica volumen al alcanzar el umbral", () => {
+        const d = calcDiscount(500_000, cfg, false);
+        expect(d.type).toBe("VOLUME");
+        expect(d.totalArs).toBe(450_000);
+    });
+
+    it("gremio gana sobre volumen cuando es mayor (no se suman)", () => {
+        const d = calcDiscount(600_000, cfg, true);
+        expect(d.type).toBe("GUILD");
+        expect(d.pct).toBe(15);
     });
 });

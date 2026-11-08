@@ -7,6 +7,7 @@ import {
 	getStoreSession,
 } from "@/lib/store-auth";
 import { LoginFormData, RegisterFormData } from "@/lib/validations/store-auth";
+import { safeRedirect } from "@/lib/utils";
 import { compare, hash } from "bcryptjs";
 import { redirect } from "next/navigation"; // used by logoutStoreCustomer
 
@@ -30,7 +31,7 @@ export async function loginStoreCustomer(
 		email: customer.email,
 	});
 
-	return { redirectTo: data.redirect ?? "/" };
+	return { redirectTo: safeRedirect(data.redirect) };
 }
 
 export async function registerStoreCustomer(
@@ -64,7 +65,7 @@ export async function registerStoreCustomer(
 		email: newCustomer.email,
 	});
 
-	return { redirectTo: "/" };
+	return { redirectTo: safeRedirect(data.redirect) };
 }
 
 export async function logoutStoreCustomer(): Promise<void> {
