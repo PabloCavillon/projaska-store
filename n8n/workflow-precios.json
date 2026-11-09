@@ -1,0 +1,378 @@
+{
+  "name": "Sincronizar productos con Lococo",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "670dd1f9-b91a-48b6-bdac-b5c0e533f4b2",
+      "name": "Manual",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "2fdee057-bfa5-4134-b0e9-6316beceeef7",
+      "name": "Cada 6 horas",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://scraper:8000/competitor",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "5f398fa0-7a80-455f-960b-1b3799c3d9a3",
+      "name": "Scrapear competencia",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.MY_PRODUCTS_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.MY_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6aece51f-1a67-472c-8991-efc5be8ec18b",
+      "name": "Mis productos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Empareja tus productos con Lococo.\n// SYNC_MODE=model -> compara tu \"model\" con el código de Lococo | SYNC_MODE=sku -> compara tu \"sku\"\nconst scraped = $('Scrapear competencia').first().json;\nconst comp = scraped.items || [];\nlet mine = $('Mis productos').all().map(i => i.json);\nif (mine.length === 1 && Array.isArray(mine[0].products)) mine = mine[0].products;\nif (mine.length === 1 && Array.isArray(mine[0].data)) mine = mine[0].data;\n\nconst MODE = String($env.SYNC_MODE || 'model').toLowerCase();\nconst key = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');\nconst norm = s => String(s || '').toLowerCase().normalize('NFD')\n  .replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();\nconst tokens = s => new Set(norm(s).split(' ').filter(t => t.length > 1));\nconst compKey = comp.map(c => key(c.code || c.name));\nconst compTok = comp.map(c => tokens(c.name));\n\nconst out = [];\nfor (const p of mine) {\n  const myKey = key(MODE === 'sku' ? p.sku : p.model);\n  const base = {\n    mode: MODE, id: p.id ?? null, sku: p.sku ?? null, model: p.model ?? null, name: p.name,\n    current_price: Number(p.price), current_description: p.description ?? null,\n    usd_rate: scraped.usd_rate || null,\n  };\n\n  // 1) Coincidencia exacta del código\n  if (myKey) {\n    const exact = comp.filter((c, i) => compKey[i] === myKey);\n    if (exact.length === 1) {\n      out.push({ json: { ...base, exact: true, candidates: exact, match_index: 0, confidence: 1, match_type: 'exacto' } });\n      continue;\n    }\n    // 2) Un código contiene al otro (ej. HAC-B1A21P dentro de DH-HAC-B1A21P-U-0280B)\n    if (myKey.length >= 6) {\n      const pref = comp.filter((c, i) => compKey[i].includes(myKey) || myKey.includes(compKey[i]));\n      if (pref.length === 1) {\n        out.push({ json: { ...base, exact: true, candidates: pref, match_index: 0, confidence: 0.9, match_type: 'contiene' } });\n        continue;\n      }\n      if (pref.length > 1) {\n        const list = pref.slice(0, 8).map((c, i) => `${i}. ${c.name} — ${c.currency || ''} ${c.price}`).join('\\n');\n        out.push({ json: { ...base, exact: false, candidates: pref.slice(0, 8), match_type: 'ia',\n          prompt: `Mi producto: ${p.name} (modelo ${p.model || '-'})\\n\\nCandidatos:\\n${list}` } });\n        continue;\n      }\n    }\n  }\n\n  // 3) Sin código que coincida: candidatos por nombre y decide la IA\n  const t = tokens(`${p.model || ''} ${p.name}`);\n  const top = comp.map((c, idx) => {\n    let inter = 0;\n    for (const w of t) if (compTok[idx].has(w)) inter++;\n    const union = t.size + compTok[idx].size - inter;\n    return { c, score: union ? inter / union : 0 };\n  }).filter(x => x.score > 0).sort((a, b) => b.score - a.score).slice(0, 8);\n  if (!top.length) continue;\n  const candidates = top.map(x => x.c);\n  const list = candidates.map((c, i) => `${i}. ${c.name} — ${c.currency || ''} ${c.price}`).join('\\n');\n  out.push({ json: { ...base, exact: false, candidates, match_type: 'ia',\n    prompt: `Mi producto: ${p.name} (modelo ${p.model || '-'})\\n\\nCandidatos:\\n${list}` } });\n}\nreturn out;\n"
+      },
+      "id": "19a3578d-a862-4079-af8c-7c769e209bb4",
+      "name": "Preparar candidatos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "7929d640-d503-4960-ac7e-bb03e9384960",
+              "leftValue": "={{ $json.exact }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "45b084f7-0db8-4247-b622-2115c3a5758e",
+      "name": "¿Coincide el código?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        960,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LLM_URL || 'https://api.groq.com/openai/v1/chat/completions' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LLM_API_KEY || 'ollama' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'llama-3.3-70b-versatile', temperature: 0, response_format: { type: 'json_object' }, messages: [ { role: 'system', content: 'Sos un asistente que compara productos de seguridad electrónica. Decidí si alguno de los candidatos es EXACTAMENTE el mismo producto que el mío: misma marca, modelo, resolución, lente y variante. Si hay dudas, no es el mismo. Respondé solo JSON con match_index (índice del candidato, o -1 si ninguno coincide) y confidence (de 0 a 1).' }, { role: 'user', content: $json.prompt } ] }) }}",
+        "options": {
+          "timeout": 600000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": "={{ Number($env.LLM_INTERVAL_MS || 2500) }}"
+            }
+          }
+        }
+      },
+      "id": "e3ca471d-48ec-425b-95fc-50cc9e65059e",
+      "name": "IA: ¿es el mismo producto?",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Junta la respuesta de la IA con los datos del producto\nconst p = $('Preparar candidatos').item.json;\nlet ans = {};\n// Formato OpenAI (Groq, Gemini, Ollama /v1) o formato nativo de Ollama\nconst content = $json.choices?.[0]?.message?.content ?? $json.message?.content ?? '{}';\ntry { ans = JSON.parse(content); } catch (e) {}\nreturn { json: {\n  ...p,\n  match_index: Number.isInteger(ans.match_index) ? ans.match_index : -1,\n  confidence: Number(ans.confidence) || 0,\n} };\n"
+      },
+      "id": "0553e00e-1cfc-436e-8539-eb421bdb4ed5",
+      "name": "Unir respuesta IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Decide qué actualizar. Todo configurable desde el .env\nconst num = (v, d) => { const n = parseFloat(v); return Number.isFinite(n) ? n : d; };\nconst bool = (v, d) => (v === undefined || v === '' ? d : String(v).toLowerCase() === 'true');\nconst MARGIN = num($env.PRICE_MARGIN_PCT, 0);\nconst ROUND = Math.max(0.01, num($env.PRICE_ROUND_TO, 1));\nconst MAX_CHANGE = num($env.MAX_CHANGE_PCT, 30);\nconst MIN_CONF = num($env.MIN_CONFIDENCE, 0.8);\nconst IVA = num($env.ADD_IVA_PCT, 0);\nconst UPD_SKU = bool($env.UPDATE_SKU, true);\nconst UPD_DESC = bool($env.UPDATE_DESCRIPTION, true);\nconst TARGET = String($env.TARGET_CURRENCY || 'USD').toUpperCase();\nconst round2 = n => Math.round(n * 100) / 100;\n\nreturn $input.all().map((item, i) => {\n  const p = item.json;\n  const base = { id: p.id, sku: p.sku, model: p.model, name: p.name, mode: p.mode,\n    match_type: p.match_type, confidence: p.confidence, current_price: p.current_price };\n  const idx = p.match_index;\n  if (!Number.isInteger(idx) || idx < 0 || idx >= (p.candidates || []).length)\n    return { json: { ...base, action: 'skip', reason: 'sin coincidencia' }, pairedItem: i };\n  const m = p.candidates[idx];\n  const r = { ...base, source_code: m.code, source_name: m.name, source_price: m.price, source_currency: m.currency };\n  if (p.confidence < MIN_CONF)\n    return { json: { ...r, action: 'skip', reason: `confianza baja (${p.confidence})` }, pairedItem: i };\n\n  // Precio en la moneda de tu base (TARGET_CURRENCY). Projaska guarda el COSTO en USD.\n  const rate = num($env.USD_RATE, p.usd_rate);\n  let cost = m.price;\n  const srcCur = m.currency || 'ARS';\n  if (srcCur !== TARGET) {\n    if (!rate) return { json: { ...r, action: 'skip', reason: 'falta cotización para convertir' }, pairedItem: i };\n    cost = srcCur === 'USD' ? cost * rate : cost / rate;\n    r.usd_rate = rate;\n  }\n  cost *= (1 + IVA / 100) * (1 + MARGIN / 100);\n  const newPrice = TARGET === 'USD' && ROUND <= 1 ? round2(cost) : Math.round(cost / ROUND) * ROUND;\n  p.current_price = round2(p.current_price);\n\n  const change = p.current_price ? Math.abs(newPrice - p.current_price) / p.current_price * 100 : 0;\n  r.change_pct = Math.round(change * 10) / 10;\n  if (p.current_price && change > MAX_CHANGE)\n    return { json: { ...r, new_price: newPrice, action: 'review', reason: `cambio de ${r.change_pct}% supera MAX_CHANGE_PCT` }, pairedItem: i };\n\n  // Qué campos cambian\n  const set = {};\n  if (newPrice !== p.current_price) set.price = newPrice;\n  if (p.mode === 'model' && UPD_SKU && m.code && m.code !== p.sku) set.sku = m.code;\n  const desc = String(m.name || '').replace(/^.*? — /, '').trim();\n  if (UPD_DESC && desc && desc !== p.current_description) set.description = desc;\n\n  if (!Object.keys(set).length) return { json: { ...r, action: 'skip', reason: 'sin cambios' }, pairedItem: i };\n\n  // A quién actualizar: por id si la API lo da; si no, por modelo o sku según el modo\n  const match = p.id != null ? { id: p.id } : (p.mode === 'sku' ? { sku: p.sku } : { model: p.model });\n  return { json: { ...r, action: 'update', match, set }, pairedItem: i };\n});\n"
+      },
+      "id": "c05541ba-8799-4d9b-af4d-98015232329f",
+      "name": "Calcular cambios",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Con DRY_RUN distinto de \"false\" no se toca nada: mirá la salida de \"Calcular cambios\"\nif (String($env.DRY_RUN).toLowerCase() !== 'false') return [];\nreturn $input.all().filter(i => i.json.action === 'update');\n"
+      },
+      "id": "c2b69f4a-408f-4987-84c0-59e8e3b5f351",
+      "name": "Solo actualizaciones",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MY_UPDATE_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.MY_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ match: $json.match, set: $json.set, source: 'n8n-lococo' }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "7c0326e1-9ee1-4a19-bd37-1715c2a92bd1",
+      "name": "Actualizar producto en mi sitio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 200 = ok | 404 y 409 = avisos para revisar a mano (no cortan el flujo)\nconst reqs = $('Solo actualizaciones').all();\nconst rows = $input.all().map((it, i) => {\n  const q = reqs[i]?.json || {};\n  const sc = it.json.statusCode;\n  const label = { 200: 'ok', 404: 'no encontrado', 409: 'conflicto', 400: 'body inválido', 401: 'token inválido' }[sc] || 'error';\n  return { name: q.name, match: q.match, set: q.set, status: sc, result: label,\n           detail: it.json.body?.changed ?? it.json.body?.error ?? null };\n});\nreturn [{ json: {\n  total: rows.length,\n  ok: rows.filter(r => r.status === 200).length,\n  avisos: rows.filter(r => r.status !== 200),\n  cambios: rows.filter(r => r.status === 200 && r.detail && Object.keys(r.detail).length),\n} }];\n"
+      },
+      "id": "d6a23b79-66d9-4bb4-8c0e-5f7f35a18f72",
+      "name": "Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        100
+      ]
+    }
+  ],
+  "connections": {
+    "Manual": {
+      "main": [
+        [
+          {
+            "node": "Scrapear competencia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada 6 horas": {
+      "main": [
+        [
+          {
+            "node": "Scrapear competencia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrapear competencia": {
+      "main": [
+        [
+          {
+            "node": "Mis productos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mis productos": {
+      "main": [
+        [
+          {
+            "node": "Preparar candidatos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar candidatos": {
+      "main": [
+        [
+          {
+            "node": "¿Coincide el código?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Coincide el código?": {
+      "main": [
+        [
+          {
+            "node": "Calcular cambios",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IA: ¿es el mismo producto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA: ¿es el mismo producto?": {
+      "main": [
+        [
+          {
+            "node": "Unir respuesta IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unir respuesta IA": {
+      "main": [
+        [
+          {
+            "node": "Calcular cambios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular cambios": {
+      "main": [
+        [
+          {
+            "node": "Solo actualizaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solo actualizaciones": {
+      "main": [
+        [
+          {
+            "node": "Actualizar producto en mi sitio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar producto en mi sitio": {
+      "main": [
+        [
+          {
+            "node": "Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

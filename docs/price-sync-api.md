@@ -151,6 +151,30 @@ Si ningún valor cambió, `changed` es `{}` y no se escribe nada en la base ni e
 
 ---
 
+## POST /api/dollar-rate/refresh
+
+Actualiza la cotización del dólar oficial (promedio compra/venta de dolarapi.com) en Configuración. Está pensado para un flujo de n8n con un **Schedule Trigger cada 1 hora**. Usa la misma API key que el resto.
+
+### Request
+
+```http
+POST /api/dollar-rate/refresh
+Authorization: Bearer <PRICE_SYNC_API_KEY>
+```
+
+No lleva body.
+
+### Respuestas
+
+| Status | Body | Cuándo |
+|---|---|---|
+| 200 | `{ "status": "updated" \| "unchanged", "previous": 1000, "dollarRate": 1065, "checkedAt": "..." }` | Se guardó la cotización. `unchanged` si era la misma; igual se registra la hora. |
+| 401 | `{ "error": "Unauthorized" }` | Falta la API key o es incorrecta. |
+| 409 | `{ "status": "rejected", "previous": 1000, "fetched": 1500, "reason": "..." }` | El cambio supera el 25% respecto del valor actual. No se aplica: revisalo y cargalo a mano. |
+| 502 | `{ "error": "No se pudo actualizar la cotización" }` | dolarapi.com falló o devolvió datos inválidos. No se tocó nada. |
+
+En n8n conviene agregar una rama que te avise (mail o WhatsApp) cuando la respuesta sea 409 o 502.
+
 ## Historial de cambios
 
 Cada campo actualizado genera una fila en la tabla `ProductSyncLog`:

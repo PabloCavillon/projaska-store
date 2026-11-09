@@ -139,6 +139,12 @@ export function PriceConfigForm({ config }: PriceConfigFormProps) {
                 {rateError && (
                     <p className="text-sm text-red-500 mt-1">{rateError}</p>
                 )}
+
+                <p className="text-sm text-zinc-500">
+                    {config.dollarRateUpdatedAt
+                        ? <>Última actualización del dólar: <strong className="text-zinc-800">{new Date(config.dollarRateUpdatedAt).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Argentina/Buenos_Aires" })}</strong> · se actualiza solo cada 1 hora.</>
+                        : "Todavía no hay actualizaciones registradas. Se actualiza solo cada 1 hora."}
+                </p>
             </div>
 
             {/* Markups de venta */}

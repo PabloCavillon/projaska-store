@@ -1,0 +1,44 @@
+services:
+  n8n:
+    image: n8nio/n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    env_file: .env            # n8n lee margen, URLs, etc. con $env.VARIABLE
+    environment:
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - N8N_SECURE_COOKIE=false
+      - GENERIC_TIMEZONE=America/Argentina/Mendoza
+      - TZ=America/Argentina/Mendoza
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on: [scraper]
+
+  scraper:
+    build: ./scraper
+    restart: unless-stopped
+    env_file: .env
+    shm_size: 1gb             # necesario si usás COMPETITOR_STEALTH=true
+
+  ollama:                     # opcional: solo arranca con --profile ollama
+    image: ollama/ollama
+    profiles: ["ollama"]
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_NUM_PARALLEL=1        # de a un pedido: en CPU es más estable
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_KEEP_ALIVE=30m        # no descarga el modelo entre pedidos
+    # Si la Casidy tiene GPU NVIDIA (y nvidia-container-toolkit), descomentá:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  n8n_data:
+  ollama_data:
