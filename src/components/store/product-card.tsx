@@ -81,6 +81,7 @@ export function ProductCard({ product }: { product: StoreProduct }) {
             </Link>
 
             <div className="flex-1 flex flex-col gap-1">
+                {product.brand && <span className="osd text-[11px] text-osd-dim uppercase truncate">{product.brand}</span>}
                 <Link href={`/products/${product.id}`} className="text-sm leading-snug line-clamp-2 hover:underline underline-offset-4">
                     {product.name}
                 </Link>
