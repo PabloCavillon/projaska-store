@@ -1,5 +1,7 @@
 'use client';
 
+
+import { preventEnterSubmit } from "@/lib/utils";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Save, X } from "lucide-react";
@@ -64,7 +66,7 @@ export function OrderForm({ customers, products }: { customers: SerializedCustom
     const inputClasses = "w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 text-base text-zinc-900 transition-all outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 placeholder:text-zinc-400";
 
     return (
-        <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
+        <form onKeyDown={preventEnterSubmit} className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
 
             {/* Cliente */}
             <div className="flex flex-col">

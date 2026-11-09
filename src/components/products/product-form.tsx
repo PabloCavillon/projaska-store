@@ -11,7 +11,7 @@ import { SerializedProduct } from "@/types/product";
 import { SerializedPriceConfig } from "@/actions/config";
 import { ImagePlus, Loader2, Save, X, TrendingDown, Info, ClipboardList, Store } from "lucide-react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn, preventEnterSubmit } from "@/lib/utils";
 
 function calcPriceArs(priceUsd: number, config: SerializedPriceConfig) {
     return priceUsd * config.dollarRate * (1 + config.shippingPct / 100) * (1 + config.profitPct / 100);
@@ -129,7 +129,11 @@ export function ProductForm({ product, config }: Props) {
     const buttonSecondary = "flex-1 md:flex-none inline-flex items-center justify-center px-8 py-3.5 rounded-xl text-base font-bold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all gap-2";
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form
+            onSubmit={handleSubmit(onSubmit)}
+            onKeyDown={preventEnterSubmit}
+            className="space-y-8"
+        >
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col">

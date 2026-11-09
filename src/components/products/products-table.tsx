@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from "react";
+import { Check, Copy } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { setProductShowInStore } from "@/actions/products";
@@ -51,6 +52,36 @@ function StoreSwitch({ product, onToggle, pending }: { product: SerializedProduc
                 {on ? "Visible" : "Oculto"}
             </span>
         </span>
+    );
+}
+
+/** Modelo clickeable: lo copia al portapapeles sin abrir la fila. */
+function CopyModel({ model }: { model: string }) {
+    const [copied, setCopied] = useState(false);
+    const copy = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            await navigator.clipboard.writeText(model);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+        } catch {
+            // Sin permiso de portapapeles (http o navegador viejo): no hay nada útil que mostrar.
+        }
+    };
+    return (
+        <button
+            type="button"
+            onClick={copy}
+            title="Copiar modelo"
+            aria-label={`Copiar modelo ${model}`}
+            className="group/copy inline-flex items-center gap-1.5 font-mono text-xs text-zinc-500 hover:text-zinc-900 cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+        >
+            Modelo: {model}
+            {copied
+                ? <Check className="w-3.5 h-3.5 text-emerald-600" aria-hidden="true" />
+                : <Copy className="w-3.5 h-3.5 opacity-0 group-hover/copy:opacity-100 transition-opacity" aria-hidden="true" />}
+            <span aria-live="polite" className={copied ? "text-emerald-600" : "sr-only"}>{copied ? "Copiado" : ""}</span>
+        </button>
     );
 }
 
@@ -140,7 +171,7 @@ export default function ProductsTable({ products: initialProducts }: Props) {
                                             >
                                                 {product.name}
                                             </Link>
-                                            {product.model && <span className="block font-mono text-xs text-zinc-500 mt-1">Modelo: {product.model}</span>}
+                                            {product.model && <div className="mt-1"><CopyModel model={product.model} /></div>}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-zinc-500">
                                             {product.category}
@@ -178,7 +209,7 @@ export default function ProductsTable({ products: initialProducts }: Props) {
                                 >
                                     {product.name}
                                 </Link>
-                                {product.model && <p className="font-mono text-xs text-zinc-500">Modelo: {product.model}</p>}
+                                {product.model && <div><CopyModel model={product.model} /></div>}
                                 <p className="text-sm text-zinc-400">{product.category}</p>
                                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                                     <span className="font-bold text-base text-zinc-900">{fmtPrice(product.price)}</span>

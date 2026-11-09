@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Loader2, Save, DollarSign, Truck, TrendingUp, Tag, BarChart2, RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, preventEnterSubmit } from "@/lib/utils";
 import { fetchOfficialDollarRate, updatePriceConfig } from "@/actions/config";
 import { PriceConfigFormData, PriceConfigFormInput, priceConfigSchema } from "@/lib/validations/config";
 import { SerializedPriceConfig } from "@/actions/config";
@@ -76,7 +76,7 @@ export function PriceConfigForm({ config }: PriceConfigFormProps) {
     const sectionTitleClasses = "flex items-center gap-2 text-sm font-black text-zinc-900 uppercase tracking-widest mb-6 pb-4 border-b border-zinc-100";
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
             {/* Cotización del dólar */}
             <div className={sectionClasses}>

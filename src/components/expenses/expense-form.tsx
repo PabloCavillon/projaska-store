@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, preventEnterSubmit } from "@/lib/utils";
 import { createExpense } from "@/actions/expenses";
 import { ExpenseFormData, ExpenseFormInput, expenseSchema } from "@/lib/validations/expense";
 
@@ -40,7 +40,7 @@ export function ExpenseForm() {
     const btnSecondary = "flex-1 md:flex-none inline-flex items-center justify-center px-8 py-3.5 rounded-xl text-base font-bold text-zinc-500 hover:bg-zinc-100 transition-all gap-2";
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="space-y-8">
 
             {/* Tipo de gasto */}
             <div className="flex flex-col">

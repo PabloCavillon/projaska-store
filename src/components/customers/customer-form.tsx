@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createCustomer, updateCustomer } from "@/actions/customers";
 import { CustomerFormData, CustomerFormInput, customerSchema } from '@/lib/validations/customer';
 import { Loader2, Save, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, preventEnterSubmit } from "@/lib/utils";
 import { SerializedCustomer } from "@/types/customer";
 
 export function CustomerForm({ customer }: { customer?: SerializedCustomer }) {
@@ -45,7 +45,7 @@ export function CustomerForm({ customer }: { customer?: SerializedCustomer }) {
     const btnSecondary = "flex-1 md:flex-none inline-flex items-center justify-center px-8 py-3.5 rounded-xl text-base font-bold text-zinc-500 hover:bg-zinc-100 transition-all gap-2";
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <div className="flex flex-col">
                 <label className={labelClasses}>Nombre Completo / Razón Social</label>
                 <input {...register("name")} placeholder="Juan Pérez o Projaska SRL" className={cn(inputClasses, errors.name && "border-red-200")} />

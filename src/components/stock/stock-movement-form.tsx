@@ -1,5 +1,7 @@
 'use client';
 
+
+import { preventEnterSubmit } from "@/lib/utils";
 import { createStockMovement } from "@/actions/stock";
 import { StockMovementFormData, StockMovementFormInput, stockMovementSchema } from "@/lib/validations/stock";
 import { SerializedProduct } from "@/types/product";
@@ -46,7 +48,7 @@ export default function StockMovementForm({ products }: { products: SerializedPr
     const inputClass = "w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 text-base text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-900/5 focus:border-zinc-900 transition-all placeholder:text-zinc-400";
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 flex flex-col">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="space-y-5 flex flex-col">
 
             <div className="flex flex-col gap-1.5">
                 <label className={labelClass}>Producto</label>

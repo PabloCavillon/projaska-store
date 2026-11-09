@@ -1,5 +1,7 @@
 'use client';
 
+
+import { preventEnterSubmit } from "@/lib/utils";
 import { createUser, updateUser } from "@/actions/users";
 import { Role } from "@/generated/prisma/enums";
 import { CreateUserFormData, createUserSchema, UserFormData, UserFormInput, userSchema } from "@/lib/validations/user";
@@ -52,7 +54,7 @@ export default function UserForm({ user }: { user?: SerializedUser }) {
     const btnSecondary = "flex-1 md:flex-none inline-flex items-center justify-center px-8 py-3.5 rounded-xl text-base font-bold text-zinc-500 hover:bg-zinc-100 transition-all gap-2";
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 max-w-sm">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 max-w-sm">
             <div className="flex flex-col">
                 <label className={labelClass}>Usuario</label>
                 <input

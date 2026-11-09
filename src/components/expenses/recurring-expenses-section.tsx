@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { SerializedRecurringExpense } from "@/types/expense";
 import { createRecurringExpense, deleteRecurringExpense, registerRecurringExpense } from "@/actions/expenses";
-import { cn } from "@/lib/utils";
+import { cn, preventEnterSubmit } from "@/lib/utils";
 import { Loader2, Plus, RefreshCw, Trash2, X, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -94,7 +94,7 @@ export function RecurringExpensesSection({
 
             {/* Form */}
             {showForm && (
-                <form onSubmit={handleSubmit} className="mb-4 bg-zinc-50 rounded-2xl p-4 space-y-3 border border-zinc-100">
+                <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit} className="mb-4 bg-zinc-50 rounded-2xl p-4 space-y-3 border border-zinc-100">
                     <div className="flex gap-2 flex-wrap">
                         {TYPE_OPTIONS.map((opt) => (
                             <button

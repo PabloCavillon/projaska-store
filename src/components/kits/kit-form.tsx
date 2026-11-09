@@ -11,7 +11,7 @@ import { SerializedKit } from "@/types/kit";
 import { SerializedProduct } from "@/types/product";
 import { ImagePlus, Loader2, Plus, Save, Trash2, X } from "lucide-react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn, preventEnterSubmit } from "@/lib/utils";
 import Combobox from "@/components/ui/combobox";
 import { useRef } from "react";
 
@@ -92,7 +92,7 @@ export function KitForm({ kit, products, kits }: Props) {
     const buttonSecondary = "flex-1 md:flex-none inline-flex items-center justify-center px-8 py-3.5 rounded-xl text-base font-bold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all gap-2";
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="space-y-8">
 
             {/* SKU + Nombre */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

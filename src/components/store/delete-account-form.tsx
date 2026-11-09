@@ -1,5 +1,7 @@
 "use client";
 
+
+import { preventEnterSubmit } from "@/lib/utils";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
@@ -51,7 +53,7 @@ export default function DeleteAccountForm() {
     };
 
     return (
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={onSubmit} className="space-y-4">
             <p className="text-sm">
                 Esto no se puede deshacer. Se borran tu nombre, email, teléfono y dirección, y se cierra tu sesión. Ingresá tu
                 contraseña para confirmar.

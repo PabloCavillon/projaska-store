@@ -32,3 +32,8 @@ export function safeRedirect(path: string | null | undefined, fallback = "/"): s
 export function jsonLdHtml(data: unknown): string {
     return JSON.stringify(data).replace(/</g, "\\u003c");
 }
+
+/** onKeyDown de <form>: Enter en un input no envía el formulario (solo el botón Guardar). Textareas y botones no cambian. */
+export function preventEnterSubmit(e: { key: string; target: EventTarget | null; preventDefault(): void }) {
+    if (e.key === "Enter" && e.target instanceof HTMLInputElement) e.preventDefault();
+}

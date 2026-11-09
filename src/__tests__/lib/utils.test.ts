@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { cn, fmtUsd, safeRedirect } from "@/lib/utils";
+import { describe, it, expect, vi } from "vitest";
+import { cn, fmtUsd, safeRedirect, preventEnterSubmit } from "@/lib/utils";
 
 describe("cn", () => {
     it("combina clases simples", () => {
@@ -58,5 +58,20 @@ describe("jsonLdHtml", () => {
         const html = jsonLdHtml(data);
         expect(html).not.toContain("<");
         expect(JSON.parse(html)).toEqual(data);
+    });
+});
+
+describe("preventEnterSubmit", () => {
+    const ev = (key: string, target: EventTarget) => ({ key, target, preventDefault: vi.fn() });
+    it("bloquea Enter en un input", () => {
+        const e = ev("Enter", document.createElement("input"));
+        preventEnterSubmit(e);
+        expect(e.preventDefault).toHaveBeenCalled();
+    });
+    it("deja Enter en textarea y botón, y otras teclas en input", () => {
+        for (const e of [ev("Enter", document.createElement("textarea")), ev("Enter", document.createElement("button")), ev("a", document.createElement("input"))]) {
+            preventEnterSubmit(e);
+            expect(e.preventDefault).not.toHaveBeenCalled();
+        }
     });
 });

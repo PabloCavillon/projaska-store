@@ -1,5 +1,7 @@
 "use client";
 
+
+import { preventEnterSubmit } from "@/lib/utils";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -39,7 +41,7 @@ export default function RevocationForm({ defaults }: { defaults?: Partial<Revoca
     }
 
     return (
-        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+        <form onKeyDown={preventEnterSubmit} className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div>
                 <label className="vf-label" htmlFor="orderCode">Código de pedido</label>
                 <input id="orderCode" className="vf-input" placeholder="STR-XXXXXXXX" aria-invalid={errors.orderCode ? true : undefined} aria-describedby={errors.orderCode ? "orderCode-error" : undefined} {...register("orderCode")} />
