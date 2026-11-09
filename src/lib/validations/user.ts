@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export const userSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  username: z.string().trim().min(3, "Username must be at least 3 characters"),
   role: z.enum(["ADMIN", "SELLER", "WAREHOUSE", "WATCHER"]),
   password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
 })

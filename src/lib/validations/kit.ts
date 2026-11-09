@@ -9,10 +9,10 @@ export const kitItemSchema = z.object({
 });
 
 export const kitSchema = z.object({
-    sku: z.string().min(1, "El SKU es obligatorio"),
-    name: z.string().min(1, "El nombre es obligatorio"),
-    description: z.string().optional(),
-    imageUrl: z.string().optional(),
+    sku: z.string().trim().min(1, "El SKU es obligatorio"),
+    name: z.string().trim().min(1, "El nombre es obligatorio"),
+    description: z.string().trim().optional(),
+    imageUrl: z.string().trim().optional(),
     price: z.coerce.number().positive("El precio debe ser mayor a 0"),
     isActive: z.boolean().default(true),
     items: z.array(kitItemSchema).min(1, "El kit debe tener al menos un ítem"),

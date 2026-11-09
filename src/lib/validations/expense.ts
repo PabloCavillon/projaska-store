@@ -10,12 +10,12 @@ const optionalPositiveNumber = z.preprocess(
 export const expenseSchema = z
     .object({
         type: z.enum(["PURCHASE", "SHIPPING", "OTHER", "ADVERTISING"]),
-        description: z.string().min(1, "La descripción es requerida"),
+        description: z.string().trim().min(1, "La descripción es requerida"),
         amountUsd: optionalPositiveNumber,
         amountArs: optionalPositiveNumber,
         dollarRate: optionalPositiveNumber,
-        date: z.string().min(1, "La fecha es requerida"),
-        notes: z.string().optional(),
+        date: z.string().trim().min(1, "La fecha es requerida"),
+        notes: z.string().trim().optional(),
     })
     .refine(
         (d) => {
@@ -32,9 +32,9 @@ export const expenseSchema = z
 
 export const recurringExpenseSchema = z.object({
     type: z.enum(["SHIPPING", "OTHER", "ADVERTISING"]),
-    description: z.string().min(1),
+    description: z.string().trim().min(1),
     amountArs: z.number().positive(),
-    notes: z.string().optional(),
+    notes: z.string().trim().optional(),
 });
 
 export type ExpenseFormInput = z.input<typeof expenseSchema>;

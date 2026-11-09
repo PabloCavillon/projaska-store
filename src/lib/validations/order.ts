@@ -8,7 +8,7 @@ export const orderItemSchema = z.object({
 
 export const orderSchema = z.object({
 	customerId: z.string().min(1, "El cliente es requerido"),
-	notes: z.string().optional(),
+	notes: z.string().trim().optional(),
 	items: z
 		.array(orderItemSchema)
 		.min(1, "Al menos 1 producto es requerido.")

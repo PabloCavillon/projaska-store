@@ -193,3 +193,19 @@ describe("kitSchema", () => {
         expect(result.success).toBe(false);
     });
 });
+
+describe("trim en formularios del admin", () => {
+    it("recorta espacios antes y después", () => {
+        const p = productSchema.parse({ sku: " SKU1 ", name: "  Cámara IP  ", price: "1", stock: "0", category: " CCTV " });
+        expect([p.sku, p.name, p.category]).toEqual(["SKU1", "Cámara IP", "CCTV"]);
+    });
+    it("un campo obligatorio con solo espacios es inválido", () => {
+        expect(productSchema.safeParse({ sku: "S", name: "   ", price: "1", stock: "0", category: "C" }).success).toBe(false);
+    });
+    it("email de cliente: espacios → vacío permitido; con valor se recorta", async () => {
+        const { customerSchema } = await import("@/lib/validations/customer");
+        expect(customerSchema.parse({ name: "Ana", email: "   " }).email).toBe("");
+        expect(customerSchema.parse({ name: "Ana", email: " ana@x.com " }).email).toBe("ana@x.com");
+        expect(customerSchema.safeParse({ name: "Ana", email: "no-es-mail" }).success).toBe(false);
+    });
+});

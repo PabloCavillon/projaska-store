@@ -1,11 +1,11 @@
 import z from "zod";
 
 export const customerSchema = z.object({
-	name: z.string().min(1, "Name is required"),
-	email: z.string().email("Invalid email").optional().or(z.literal("")),
-	phone: z.string().optional(),
-	address: z.string().optional(),
-	notes: z.string().optional(),
+	name: z.string().trim().min(1, "Name is required"),
+	email: z.string().trim().pipe(z.union([z.literal(""), z.email("Invalid email")])).optional(),
+	phone: z.string().trim().optional(),
+	address: z.string().trim().optional(),
+	notes: z.string().trim().optional(),
 	isGuild: z.boolean().optional().default(false),
 });
 

@@ -26,7 +26,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
 				// Los usuarios dados de baja (deletedAt) no pueden ingresar
 				const user = await prisma.user.findFirst({
-					where: { username: credentials.username, deletedAt: null },
+					where: { username: credentials.username.trim(), deletedAt: null },
 				});
 
 				if (!user || !(await compare(credentials.password, user.password))) {
