@@ -16,7 +16,10 @@
       "name": "Cada 1 hora",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [0, 0]
+      "position": [
+        0,
+        0
+      ]
     },
     {
       "parameters": {
@@ -38,7 +41,10 @@
       "name": "Actualizar dólar",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [240, 0],
+      "position": [
+        240,
+        0
+      ],
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 5000,
@@ -71,21 +77,28 @@
       "name": "¿Falló?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [480, 0]
+      "position": [
+        480,
+        0
+      ]
     },
     {
       "parameters": {
-        "sendTo": "info.projaska@gmail.com",
-        "subject": "=Projaska: no se actualizó el dólar ({{ $json.statusCode ?? 'sin respuesta' }})",
-        "emailType": "text",
-        "message": "=La actualización automática del dólar no se aplicó.\n\nCódigo: {{ $json.statusCode ?? 'sin respuesta' }}\nDetalle: {{ $json.body?.reason ?? $json.body?.error ?? $json.error?.message ?? JSON.stringify($json.body ?? $json) }}\n\n409 = el cambio superó el 25%: revisalo y cargalo a mano en Configuración.\n401 = la API key de n8n no coincide con PRICE_SYNC_API_KEY en Vercel.\n502 = dolarapi.com no respondió; se reintenta en la próxima hora.",
-        "options": {}
+        "chatId": "TU_CHAT_ID",
+        "text": "=⚠️ <b>Projaska: no se actualizó el dólar</b>\n\nCódigo: {{ $json.statusCode ?? 'sin respuesta' }}\nDetalle: {{ String($json.body?.reason ?? $json.body?.detail ?? $json.body?.error ?? $json.error?.message ?? JSON.stringify($json.body ?? $json)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }}\n\n409 = el cambio superó el 25%: revisalo y cargalo a mano en Configuración.\n401 = la API key de n8n no coincide con PRICE_SYNC_API_KEY en Vercel.\n502 = falló dolarapi.com o la base de datos (ver Detalle).",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
       },
       "id": "6f1c2a10-0b1e-4c7a-9a01-000000000004",
-      "name": "Avisar por mail",
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.1,
-      "position": [720, -100]
+      "name": "Avisar por Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        -100
+      ]
     },
     {
       "parameters": {},
@@ -93,20 +106,51 @@
       "name": "OK",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [720, 100]
+      "position": [
+        720,
+        100
+      ]
     }
   ],
   "connections": {
     "Cada 1 hora": {
-      "main": [[{ "node": "Actualizar dólar", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Actualizar dólar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Actualizar dólar": {
-      "main": [[{ "node": "¿Falló?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "¿Falló?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "¿Falló?": {
       "main": [
-        [{ "node": "Avisar por mail", "type": "main", "index": 0 }],
-        [{ "node": "OK", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Avisar por Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },

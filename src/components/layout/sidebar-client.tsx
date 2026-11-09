@@ -3,8 +3,7 @@
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { useEffect, useState } from "react";
 import {
     LayoutDashboard,
     ShoppingCart,
@@ -38,6 +37,14 @@ const navigation = [
 ];
 
 export default function SidebarClient({ role }: { role: string }) {
+    // El admin es siempre oscuro; al volver a la tienda se restaura el tema que tenía.
+    useEffect(() => {
+        const html = document.documentElement;
+        const wasDark = html.classList.contains("dark");
+        html.classList.add("dark");
+        return () => { if (!wasDark) html.classList.remove("dark"); };
+    }, []);
+
     const [collapsed, setCollapsed] = useState(false);
     const pathname = usePathname();
 
@@ -108,17 +115,9 @@ export default function SidebarClient({ role }: { role: string }) {
                     })}
                 </nav>
 
-                {/* Sign out + theme */}
+                {/* Sign out */}
                 <div className="p-4 border-t border-zinc-200 flex flex-col gap-1">
                     <PushSubscribeButton collapsed={collapsed} />
-                    <ThemeToggle
-                        showLabel={!collapsed}
-                        className={`
-                            w-full flex items-center gap-3 px-3 py-3 uppercase text-sm text-zinc-500
-                            hover:bg-zinc-100 hover:text-zinc-900
-                            ${collapsed ? "justify-center" : ""}
-                        `}
-                    />
                     <button
                         onClick={() => signOut({ callbackUrl: "/admin/login" })}
                         className={`
@@ -157,9 +156,6 @@ export default function SidebarClient({ role }: { role: string }) {
                             </Link>
                         );
                     })}
-
-                    {/* Theme toggle */}
-                    <ThemeToggle className="flex flex-col items-center gap-1 px-3 py-2.5 text-zinc-500 hover:text-zinc-900 shrink-0 min-w-14" />
                     {/* Push notifications */}
                     <PushSubscribeButton />
 

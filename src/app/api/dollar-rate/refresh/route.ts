@@ -17,6 +17,8 @@ export async function POST(request: Request) {
         return NextResponse.json(result);
     } catch (e) {
         console.error("[dollar-rate/refresh]", e);
-        return NextResponse.json({ error: "No se pudo actualizar la cotización" }, { status: 502 });
+        // Ruta protegida por API key: el detalle va a n8n para saber si falló dolarapi o la DB.
+        const detail = e instanceof Error ? e.message.slice(0, 300) : String(e);
+        return NextResponse.json({ error: "No se pudo actualizar la cotización", detail }, { status: 502 });
     }
 }
