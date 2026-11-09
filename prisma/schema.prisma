@@ -89,6 +89,7 @@ model Product {
   id            String    @id @default(uuid())
   sku           String    @unique
   model         String?   // modelo del fabricante: clave para cruzar con listas de proveedores
+  brand         String?   // marca (Dahua, Hikvision...)
   name          String
   description   String?
   imageUrl      String?

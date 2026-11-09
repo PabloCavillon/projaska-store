@@ -7,6 +7,10 @@ export const productSchema = z.object({
 		(v) => (typeof v === "string" && v.trim() !== "" ? v.trim() : null),
 		z.string().max(100).nullable()
 	),
+	brand: z.preprocess(
+		(v) => (typeof v === "string" && v.trim() !== "" ? v.trim() : null),
+		z.string().max(100).nullable()
+	),
 	name: z.string().min(1, "Name is required"),
 	description: z.string().optional(),
 	imageUrl: z.string().optional(),

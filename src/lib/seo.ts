@@ -14,6 +14,7 @@ type Sellable = {
     description: string | null;
     imageUrl: string | null;
     sku: string;
+    brand?: string | null;
     priceArs: number;
     path: string;
     availability: "InStock" | "OutOfStock" | "MadeToOrder";
@@ -33,6 +34,7 @@ export function productJsonLd(p: Sellable) {
                 description: p.description ?? undefined,
                 image: p.imageUrl ?? undefined,
                 sku: p.sku,
+                ...(p.brand && { brand: { "@type": "Brand", name: p.brand } }),
                 url,
                 offers: {
                     "@type": "Offer",

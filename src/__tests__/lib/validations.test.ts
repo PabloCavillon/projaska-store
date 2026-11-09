@@ -86,6 +86,8 @@ describe("productSchema", () => {
         expect(productSchema.parse(valid).model).toBeNull();
         expect(productSchema.parse({ ...valid, model: "  " }).model).toBeNull();
         expect(productSchema.parse({ ...valid, model: " HAC-B1A21P " }).model).toBe("HAC-B1A21P");
+        expect(productSchema.parse({ ...valid, brand: "" }).brand).toBeNull();
+        expect(productSchema.parse({ ...valid, brand: " Dahua " }).brand).toBe("Dahua");
     });
 
     it("rechaza precio negativo o cero", () => {

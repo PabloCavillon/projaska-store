@@ -23,5 +23,14 @@ describe("productJsonLd", () => {
         expect(product.offers.url).toMatch(/\/products\/abc$/);
         expect(product.offers.hasMerchantReturnPolicy.merchantReturnDays).toBe(10);
         expect(crumbs.itemListElement).toHaveLength(3);
+        expect(product.brand).toBeUndefined();
+    });
+
+    it("incluye la marca cuando existe", () => {
+        const ld = productJsonLd({
+            name: "Cámara", description: null, imageUrl: null, sku: "CAM-1", brand: "Dahua", priceArs: 1000,
+            path: "/products/abc", availability: "InStock", breadcrumb: { name: "Catálogo", path: "/catalog" },
+        });
+        expect((ld["@graph"][0] as { brand: unknown }).brand).toEqual({ "@type": "Brand", name: "Dahua" });
     });
 });

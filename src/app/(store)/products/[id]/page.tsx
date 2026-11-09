@@ -40,6 +40,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         description: product.description,
         imageUrl: product.imageUrl,
         sku: product.sku,
+        brand: product.brand,
         priceArs: product.priceArs,
         path: `/products/${id}`,
         availability: product.stock > 0 ? "InStock" : product.isMadeToOrder ? "MadeToOrder" : "OutOfStock",

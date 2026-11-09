@@ -8,6 +8,7 @@ import { calcPriceArs, priceOf, type PriceInfo, type SaleUnit } from "@/lib/pric
 export type StoreProduct = {
     id: string;
     sku: string;
+    brand: string | null;
     name: string;
     description: string | null;
     imageUrl: string | null;
@@ -26,13 +27,13 @@ export type StoreProduct = {
 };
 
 const productSelect = {
-    id: true, sku: true, name: true, description: true, imageUrl: true,
+    id: true, sku: true, brand: true, name: true, description: true, imageUrl: true,
     category: true, stock: true, price: true,
     unitsPerBox: true, offerDiscountPct: true, offerUnit: true, isMadeToOrder: true,
 } as const;
 
 function mapProduct(p: {
-    id: string; sku: string; name: string; description: string | null;
+    id: string; sku: string; brand?: string | null; name: string; description: string | null;
     imageUrl: string | null; category: string; stock: number;
     price: { toNumber(): number } | number | string;
     unitsPerBox: number | null;
@@ -50,7 +51,7 @@ function mapProduct(p: {
         ? priceOf({ priceUsd, unitsPerBox: p.unitsPerBox, offerDiscountPct, offerUnit }, offerUnit)?.usd ?? null
         : null;
     return {
-        id: p.id, sku: p.sku, name: p.name, description: p.description,
+        id: p.id, sku: p.sku, brand: p.brand ?? null, name: p.name, description: p.description,
         imageUrl: p.imageUrl, category: p.category, stock: p.stock,
         priceUsd,
         priceArs: Math.round(calcPriceArs(priceUsd, priceInfo)),
