@@ -95,7 +95,7 @@ export default function ProductsTable({ products: initialProducts }: Props) {
     const filtered = products.filter(p => {
         const searchTerm = search.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
-        return [p.name, p.sku, p.model ?? "", p.category].some(field => {
+        return [p.name, p.sku, p.model ?? "", p.brand ?? "", p.category].some(field => {
             if (!field) return false;
             const normalizedField = field.toString().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
             return normalizedField.includes(searchTerm);
@@ -144,6 +144,7 @@ export default function ProductsTable({ products: initialProducts }: Props) {
                                 <tr className="border-b border-zinc-50">
                                     <th className={thClasses}>SKU</th>
                                     <th className={thClasses}>Producto</th>
+                                    <th className={thClasses}>Marca</th>
                                     <th className={thClasses}>Categoría</th>
                                     <th className={thClasses}>Precio</th>
                                     <th className={thClasses}>Stock</th>
@@ -172,6 +173,9 @@ export default function ProductsTable({ products: initialProducts }: Props) {
                                                 {product.name}
                                             </Link>
                                             {product.model && <div className="mt-1"><CopyModel model={product.model} /></div>}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-zinc-700">
+                                            {product.brand ?? <span className="text-zinc-300" aria-label="Sin marca">—</span>}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-zinc-500">
                                             {product.category}
@@ -210,7 +214,7 @@ export default function ProductsTable({ products: initialProducts }: Props) {
                                     {product.name}
                                 </Link>
                                 {product.model && <div><CopyModel model={product.model} /></div>}
-                                <p className="text-sm text-zinc-400">{product.category}</p>
+                                <p className="text-sm text-zinc-400">{[product.brand, product.category].filter(Boolean).join(" · ")}</p>
                                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                                     <span className="font-bold text-base text-zinc-900">{fmtPrice(product.price)}</span>
                                     <StockBadge stock={product.stock} className="px-2.5 py-0.5" />
