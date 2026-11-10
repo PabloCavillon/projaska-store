@@ -8,11 +8,13 @@ Toda la configuración sale del .env:
   COMPETITOR_LINK_SEL    (opcional) selector del <a> del producto
   COMPETITOR_STEALTH     true = navegador (StealthyFetcher), false = HTTP (Fetcher)
 """
+import hashlib
 import os
 import re
 from urllib.parse import urljoin
 
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from scrapling.fetchers import Fetcher, StealthyFetcher
 
 app = FastAPI(title="scraper-competencia")
@@ -74,8 +76,13 @@ LOCOCO_EXTRACT_JS = """() => {
   return [...r.querySelectorAll('article.card')].map(c => {
     const leaves = [...c.querySelectorAll('*')].filter(e => e.children.length === 0);
     const priceEl = leaves.find(e => /(U\\$S|US\\$|\\$)\\s?\\d/.test(e.textContent));
+    const badge = c.querySelector('.badge');
+    const img = c.querySelector('.ph img.ok');
     return { code: txt(c.querySelector('.code')), name: txt(c.querySelector('.nm')),
-             price_raw: txt(priceEl), stock: txt(c.querySelector('.badge')) };
+             price_raw: txt(priceEl), stock: txt(badge),
+             stock_level: badge ? ([...badge.classList].find(k => k !== 'badge') || null) : null,
+             pack: txt(c.querySelector('.bul')) || null,
+             image_url: img ? img.src : null };
   });
 }"""
 
@@ -84,6 +91,81 @@ LOCOCO_RATE_JS = """() => {
   const m = t.match(/D[oó]lar[^$]*\\$\\s?([\\d.,]+)/i);
   return m ? m[1] : null;
 }"""
+
+# Abre la ficha de un código usando el buscador de la lista y devuelve categoría, specs y foto grande
+LOCOCO_DETAIL_JS = """async (target) => {
+  const r = document.getElementById('rd')?.shadowRoot; if (!r) return { code: target, error: 'sin shadowRoot' };
+  const txt = el => (el?.textContent || '').replace(/\\s+/g, ' ').trim();
+  const norm = s => (s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const sleep = ms => new Promise(s => setTimeout(s, ms));
+  const inp = r.querySelector('header input[type=search], header input');
+  if (!inp) return { code: target, error: 'sin buscador' };
+  const T = norm(target);
+  // Búsquedas a probar: el texto completo, el segmento que parece modelo y las primeras palabras
+  const segs = target.split('·').map(s => s.trim()).filter(Boolean);
+  const queries = [...new Set([
+    ...(segs.length > 1 ? [] : [target]),
+    ...segs.filter(s => /\\d/.test(s) && /-/.test(s) && !/\\s/.test(s)),
+    segs[0], segs[0].split(' ').slice(0, 3).join(' '), target,
+  ])].filter(Boolean);
+  let card = null;
+  for (const q of queries) {
+    if (r.querySelector('.view.on .crumb')) { r.querySelector('.view.on .crumb a')?.click(); await sleep(300); }
+    if (location.hash.startsWith('#ficha')) { location.hash = '#info'; await sleep(200); }
+    inp.focus(); inp.value = q; inp.dispatchEvent(new Event('input', { bubbles: true }));
+    for (let k = 0; k < 20 && !card; k++) {
+      await sleep(120);
+      card = [...r.querySelectorAll('article.card')].find(c => norm(txt(c.querySelector('.code'))) === T);
+    }
+    if (card) break;
+  }
+  if (!card) return { code: target, error: 'no aparece en el buscador' };
+  card.querySelector('.code').click();
+  let v = null;
+  for (let k = 0; k < 50; k++) {
+    await sleep(120); v = r.querySelector('.view.on');
+    const h = norm(txt(v?.querySelector('h1')));
+    if (h && (h === T || h.startsWith(T) || T.startsWith(h))) break;
+    v = null;
+  }
+  if (!v) return { code: target, error: 'no abrió la ficha' };
+  const crumbs = [...v.querySelectorAll('.crumb a')].map(txt);
+  const img = v.querySelector('.fi .panel.big img.ok');
+  return { code: target, category: crumbs[1] || null, specs: [...v.querySelectorAll('.panel.desc li')].map(txt).filter(Boolean),
+           image_url: img ? img.src : null };
+}"""
+
+# Marcas que se buscan dentro del nombre. Se puede pisar con BRANDS=... en el .env (separadas por coma)
+DEFAULT_BRANDS = ("HIKVISION,DAHUA,EZVIZ,TIANDY,IMOU,CYGNUS,INTELBRAS,PICOO,SUDVISION,MARSHALL,NETIS,RANGER,"
+                  "TP-LINK,MERCUSYS,UBIQUITI,TENDA,RUIJIE,REYEE,HILOOK,HIKSEMI,ZKTECO,AJAX,PARADOX,DSC,GARNET,"
+                  "X-28,ALONSO,PPA,SEAGATE,WESTERN,TOSHIBA,KINGSTON,SANDISK,PHILCO")
+BRAND_PREFIX = {"DS-": "HIKVISION", "IDS-": "HIKVISION", "DH-": "DAHUA", "IPC-": "DAHUA", "CY-": "CYGNUS", "CS-": "EZVIZ"}
+STOCK_SLUG = {"ok": "inmediato", "warn": "deposito_2", "off": "tercer_deposito"}
+MODEL_SEG = re.compile(r"^[A-Z0-9][A-Z0-9\-/.]{4,}$")
+
+
+def detect_brand(name: str, code: str | None) -> str | None:
+    brands = [b.strip().upper() for b in (env("BRANDS") or DEFAULT_BRANDS).split(",") if b.strip()]
+    words = set(re.findall(r"[A-Z0-9ÁÉÍÓÚÑ\-]{2,}", f"{name} {code or ''}".upper()))
+    b = next((k for k in brands if k in words), None)
+    if not b and code:
+        b = next((v for p, v in BRAND_PREFIX.items() if code.upper().startswith(p)), None)
+    return b.title() if b else None
+
+
+def resolve_model(code_txt: str, name_txt: str) -> tuple[str, str, str]:
+    """Devuelve (modelo, nombre, origen). Unas 120 tarjetas de Lococo no traen código: el nombre
+    viene en .code. Ahí se busca el modelo dentro del nombre (ej. 'CS-EB5-R100-2F8WFL') y, si no hay,
+    se arma una clave estable 'LOC-xxxxxxxx' a partir del nombre."""
+    if name_txt:
+        return code_txt, name_txt, "codigo"
+    name = code_txt
+    segs = [s.strip() for s in name.split("·")]
+    for s in segs:
+        if MODEL_SEG.match(s) and re.search(r"\d", s) and "-" in s:
+            return s, " · ".join(x for x in segs if x != s), "nombre"
+    h = hashlib.sha1(re.sub(r"[^A-Z0-9]", "", name.upper()).encode()).hexdigest()[:8].upper()
+    return f"LOC-{h}", name, "generado"
 
 
 def scrape_lococo(url: str) -> dict:
@@ -106,20 +188,65 @@ def scrape_lococo(url: str) -> dict:
     items = []
     for c in data["cards"]:
         price = parse_price(c.get("price_raw"))
-        if not c.get("name") or price is None:
+        if not c.get("code") or price is None:
             continue
+        model, raw_name, model_src = resolve_model(c["code"], c.get("name") or "")
         raw = c.get("price_raw") or ""
         currency = "USD" if re.search(r"U\$S|US\$|USD", raw) else "ARS"
         items.append({
-            "name": f'{c.get("code", "")} — {c["name"]}'.strip(" —"),
-            "code": c.get("code"),
+            "name": f"{model} — {raw_name}",
+            "raw_name": raw_name,
+            "code": model,
+            "model_source": model_src,
+            "brand": detect_brand(raw_name, model if model_src != "generado" else None),
             "price": price,
             "currency": currency,
             "price_raw": raw,
             "stock": c.get("stock"),
+            "stock_status": STOCK_SLUG.get(c.get("stock_level") or "", "desconocido"),
+            "pack": c.get("pack"),
+            "image_url": c.get("image_url"),
+            "search": c["code"],
             "url": url,
         })
     return {"count": len(items), "items": items, "usd_rate": parse_price(data["rate"]), "errors": []}
+
+
+def scrape_lococo_details(url: str, codes: list[str]) -> dict:
+    out: dict = {"items": [], "errors": []}
+
+    def action(page):
+        page.wait_for_selector("#rd article.card", timeout=30000)
+        for code in codes:
+            d = {"code": code, "error": "sin intentar"}
+            for _ in range(2):  # un reintento si la ficha no abrió
+                try:
+                    d = page.evaluate(LOCOCO_DETAIL_JS, code)
+                except Exception as e:  # noqa: BLE001
+                    d = {"code": code, "error": str(e)[:200]}
+                if not d.get("error"):
+                    break
+            (out["errors"] if d.get("error") else out["items"]).append(d)
+        return page
+
+    StealthyFetcher.fetch(url, headless=True, network_idle=True, page_action=action)
+    return {"count": len(out["items"]), **out}
+
+
+class DetailsIn(BaseModel):
+    codes: list[str] = []
+
+
+@app.post("/details")
+def details(body: DetailsIn):
+    codes = [c for c in dict.fromkeys(body.codes) if c][: int(env("DETAILS_HARD_LIMIT", "1000"))]
+    if not codes:
+        return {"count": 0, "items": [], "errors": []}
+    url = env("COMPETITOR_URLS", "https://importadoralococo.com/lista-de-precios").split(",")[0].strip()
+    try:
+        return scrape_lococo_details(url, codes)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(502, f"Fallo el scraping de fichas: {e}")
 
 
 @app.post("/competitor")

@@ -1,0 +1,295 @@
+{
+  "name": "Catálogo Lococo → Projaska",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "2deb1cd9-4bb2-4c0c-8081-078a6d0cf2b3",
+      "name": "Manual",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "919e46b0-9d6c-491b-b279-e326e0c5ecee",
+      "name": "Cada 6 horas",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://scraper:8000/competitor",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "93112539-14ba-4b74-81e3-1ecbdd3522ef",
+      "name": "Scrapear Lococo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.MY_PRODUCTS_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.MY_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "adc32f8c-aaac-4441-9dcc-6a9b48076868",
+      "name": "Mis productos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        100
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Decide, para cada producto de Lococo, si hay que CREARLO o ACTUALIZARLO en tu tienda,\n// y qué productos tuyos ya no están en la lista (DESACTIVAR). El emparejamiento es por modelo.\nconst scr = $('Scrapear Lococo').first().json;\nconst raw = $('Mis productos').all().map(i => i.json);\nconst mine = (raw.length === 1 && Array.isArray(raw[0].products) ? raw[0].products : raw).filter(p => p && p.id);\nconst bool = (v, d) => v === undefined || v === '' ? d : String(v).toLowerCase() === 'true';\nconst DEACT = bool($env.DEACTIVATE_MISSING, true);\nconst MIN_SCRAPE = Number($env.MIN_SCRAPE_COUNT || 800);\nconst MAX_DET = Number($env.DETAILS_MAX_PER_RUN || 300);\nconst K = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');\n\nconst items = scr.items || [];\nif (items.length < MIN_SCRAPE) {\n  throw new Error(`Lococo devolvió ${items.length} productos (mínimo esperado ${MIN_SCRAPE}). Freno para no desactivar tu catálogo por un scraping roto.`);\n}\n\nconst byKey = new Map();\nfor (const p of mine) { const k = K(p.model); if (k) { if (!byKey.has(k)) byKey.set(k, []); byKey.get(k).push(p); } }\n\nconst plan = [];\nconst used = new Set();\nconst pending = [];\n// 1) Modelo exacto (sin importar guiones, espacios ni mayúsculas)\nfor (const s of items) {\n  const hits = byKey.get(K(s.code)) || [];\n  if (hits.length) { hits.forEach(p => used.add(p.id)); plan.push({ op: 'update', s, products: hits, match_type: 'exacto' }); }\n  else pending.push(s);\n}\n// 2) Un modelo contiene al otro (ej. HAC-B1A21P dentro de DH-HAC-B1A21P-U-0280B), solo si hay un único candidato libre\nfor (const s of pending) {\n  const k = K(s.code);\n  const cands = k.length >= 6 && s.model_source !== 'generado'\n    ? mine.filter(p => !used.has(p.id) && K(p.model).length >= 6 && (K(p.model).includes(k) || k.includes(K(p.model))))\n    : [];\n  if (cands.length === 1) { used.add(cands[0].id); plan.push({ op: 'update', s, products: cands, match_type: 'contiene' }); }\n  else plan.push({ op: 'create', s, products: [], match_type: 'nuevo' });\n}\n// 3) Productos tuyos que ya no están en Lococo\nconst missing = mine.filter(p => !used.has(p.id) && K(p.model));\nif (DEACT) for (const p of missing) if (p.active !== false) plan.push({ op: 'deactivate', s: null, products: [p], match_type: 'no está en Lococo' });\n\n// Fichas a bajar: primero los nuevos, después los que tienen la ficha incompleta\nconst needs = [];\nfor (const e of plan.filter(e => e.op === 'create')) needs.push(e.s.search);\nfor (const e of plan.filter(e => e.op === 'update'))\n  if (e.products.some(p => !(p.specs && p.specs.length) || !p.category)) needs.push(e.s.search);\nconst need_details = [...new Set(needs)].slice(0, MAX_DET);\n\nreturn [{ json: {\n  plan, need_details,\n  stats: {\n    lococo: items.length, mios: mine.length,\n    crear: plan.filter(e => e.op === 'create').length,\n    actualizar: plan.filter(e => e.op === 'update').length,\n    desactivar: plan.filter(e => e.op === 'deactivate').length,\n    duplicados: plan.filter(e => e.products.length > 1).map(e => ({ modelo: e.s.code, productos: e.products.map(p => p.sku || p.id) })),\n    sin_modelo_en_tu_tienda: mine.filter(p => !K(p.model)).length,\n    fichas_pedidas: need_details.length, fichas_pendientes: Math.max(0, new Set(needs).size - need_details.length),\n  },\n} }];\n"
+      },
+      "id": "b36d575e-9d25-4eae-a52b-2b501570c38d",
+      "name": "Planificar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://scraper:8000/details",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ codes: $json.need_details }) }}",
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "id": "a33e1484-6336-4a36-b475-417304495c8c",
+      "name": "Fichas Lococo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Arma lo que se manda a tu tienda. Precio y stock se actualizan siempre;\n// nombre, marca, categoría, ficha y foto solo se completan si están vacíos (salvo OVERWRITE_CONTENT=true).\nconst { plan, stats } = $('Planificar').first().json;\nconst det = $('Fichas Lococo').first().json || {};\nconst scr = $('Scrapear Lococo').first().json;\nconst bool = (v, d) => v === undefined || v === '' ? d : String(v).toLowerCase() === 'true';\nconst num = (v, d) => v === undefined || v === '' || isNaN(Number(v)) ? d : Number(v);\n\nconst TARGET = String($env.TARGET_CURRENCY || 'USD').toUpperCase();\nconst MARGIN = num($env.PRICE_MARGIN_PCT, 0);\nconst IVA = num($env.ADD_IVA_PCT, 0);\nconst ROUND = num($env.PRICE_ROUND_TO, 0.01);\nconst MAX_CHANGE = num($env.MAX_CHANGE_PCT, 30);\nconst RATE = num($env.USD_RATE, 0) || scr.usd_rate || 0;\nconst OVERWRITE = bool($env.OVERWRITE_CONTENT, false);\nconst PUBLISH_NEW = bool($env.PUBLISH_NEW, true);\nconst ONLY_WITH_DETAILS = bool($env.CREATE_ONLY_WITH_DETAILS, true);\nconst IN_STOCK = String($env.IN_STOCK_STATUSES || 'inmediato,deposito_2,tercer_deposito').split(',').map(s => s.trim());\nconst TITLE = String($env.NAME_STYLE || 'title').toLowerCase() === 'title';\n\nconst details = new Map((det.items || []).map(d => [d.code, d]));\nconst round2 = n => Math.round(n * 100) / 100;\n\nfunction price(s) {\n  let p = s.price;\n  const cur = String(s.currency || 'USD').toUpperCase();\n  if (cur !== TARGET) {\n    if (!RATE) return null;\n    p = cur === 'USD' ? p * RATE : p / RATE;\n  }\n  p = p * (1 + IVA / 100) * (1 + MARGIN / 100);\n  return ROUND > 1 ? Math.round(p / ROUND) * ROUND : round2(p);\n}\n\nconst ACR = new Set(['IP','PTZ','DVR','NVR','XVR','HD','UTP','FTP','POE','HDMI','VGA','USB','LED','IR','RFID','AHD','TVI','CVI','HDCVI','WDR','ONVIF','SD','PIR','GSM','LTE','4G','UPS','RJ45','CAT','DC','AC','PVC','OEM','2K','4K','DVR/NVR','NFC','SIM','LAN','WAN','SSD','HDD','MP','MM','TB','GB','MB','MBPS','GBPS','MHZ','GHZ','W','V','VA','AH','KVA','M','U','CM','FPS','DB','IP65','IP66','IP67']);\nconst LOW = new Set(['DE','DEL','CON','Y','A','PARA','EN','SIN','O','LA','EL','LOS','LAS','POR','X']);\nfunction nice(name) {\n  if (!TITLE) return name;\n  return name.split(' ').map((w, i) => w.split('-').map(p => {\n    const U = p.toUpperCase();\n    if (!p || /\\d/.test(p) || ACR.has(U) || /^[^A-ZÁÉÍÓÚÑ]+$/i.test(p)) return U;\n    if (i > 0 && LOW.has(U)) return p.toLowerCase();\n    return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();\n  }).join('-')).join(' ').replace(/\\s·\\s/g, ' · ');\n}\nconst descOf = (name, specs) => specs.length ? `${name}.\\n\\nCaracterísticas:\\n${specs.map(x => '- ' + x).join('\\n')}` : name;\nconst empty = v => v === null || v === undefined || v === '' || (Array.isArray(v) && !v.length);\n\nconst out = [];\nconst postergados = [];\nfor (const e of plan) {\n  if (e.op === 'deactivate') {\n    const p = e.products[0];\n    out.push({ json: { op: 'deactivate', match: { id: p.id }, data: { active: false, inStock: false }, label: p.sku || p.model, motivo: e.match_type } });\n    continue;\n  }\n  const s = e.s;\n  const d = details.get(s.search);\n  const specs = d?.specs || [];\n  const category = d?.category || null;\n  const imageUrl = d?.image_url || s.image_url || null;\n  const name = nice(s.raw_name);\n  const newPrice = price(s);\n  const stockStatus = s.stock_status;\n  const inStock = IN_STOCK.includes(stockStatus);\n\n  if (e.op === 'create') {\n    if (newPrice === null) { postergados.push({ modelo: s.code, motivo: 'sin cotización para convertir moneda' }); continue; }\n    if (!d && ONLY_WITH_DETAILS) { postergados.push({ modelo: s.code, motivo: 'ficha pendiente (se crea en la próxima corrida)' }); continue; }\n    out.push({ json: { op: 'create', match: null, label: s.code, motivo: 'nuevo en Lococo', data: {\n      model: s.code, sku: s.code, name, description: descOf(name, specs), brand: s.brand, category,\n      price: newPrice, stockStatus, inStock, active: PUBLISH_NEW, specs, imageUrl,\n    } } });\n    continue;\n  }\n\n  // update: puede haber más de un producto tuyo con el mismo modelo (duplicados) -> se actualizan todos\n  for (const p of e.products) {\n    const data = {};\n    let review = null;\n    if (newPrice !== null && newPrice !== Number(p.price)) {\n      const pct = Number(p.price) > 0 ? Math.abs(newPrice - p.price) / p.price * 100 : 0;\n      if (pct > MAX_CHANGE) review = `precio ${p.price} -> ${newPrice} (${pct.toFixed(0)}%)`;\n      else data.price = newPrice;\n    }\n    if (p.stockStatus !== stockStatus) data.stockStatus = stockStatus;\n    if (p.inStock !== inStock) data.inStock = inStock;\n    if (p.active === false) data.active = true;  // volvió a la lista de Lococo\n    const fill = (k, v) => { if (!empty(v) && (OVERWRITE ? JSON.stringify(p[k]) !== JSON.stringify(v) : empty(p[k]))) data[k] = v; };\n    fill('brand', s.brand);\n    fill('category', category);\n    fill('specs', specs);\n    fill('imageUrl', imageUrl);\n    if (specs.length) fill('description', descOf(OVERWRITE ? name : (p.name || name), specs));\n    if (OVERWRITE) fill('name', name);\n    if (!Object.keys(data).length && !review) continue;  // sin cambios\n    out.push({ json: { op: 'update', match: { id: p.id }, data, label: p.sku || s.code, motivo: e.match_type,\n                       review, duplicado: e.products.length > 1 } });\n  }\n}\n// Un item extra con el resumen del plan (no se manda a la tienda)\nout.push({ json: { op: 'resumen', stats, postergados, fichas_con_error: det.errors || [] } });\nreturn out;\n"
+      },
+      "id": "f31de359-0dd7-48b6-81f7-332b303db5e4",
+      "name": "Armar operaciones",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// DRY_RUN=true: no manda nada. Si no, agrupa de a BATCH_SIZE operaciones por request\nif (String($env.DRY_RUN).toLowerCase() !== 'false') return [];\nconst ops = $input.all().map(i => i.json).filter(o => o.op !== 'resumen' && Object.keys(o.data || {}).length);\nconst size = Number($env.BATCH_SIZE || 50);\nconst out = [];\nfor (let i = 0; i < ops.length; i += size) out.push({ json: { items: ops.slice(i, i + size).map(({ op, match, data }) => ({ op, match, data })),\n                                                            labels: ops.slice(i, i + size).map(o => o.label) } });\nreturn out;\n"
+      },
+      "id": "a44b501e-9e65-403b-95c8-1bc400210a33",
+      "name": "Agrupar en lotes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MY_UPSERT_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.MY_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ source: 'n8n-lococo', items: $json.items }) }}",
+        "options": {
+          "timeout": 300000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 500
+            }
+          },
+          "response": {
+            "response": {
+              "neverError": true,
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "8647880d-ae33-45f2-83be-34eab1d156ee",
+      "name": "Enviar a mi tienda",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst lotes = $('Agrupar en lotes').all();\nconst plan = $('Armar operaciones').all().map(i => i.json);\nconst head = plan.find(o => o.op === 'resumen') || {};\nconst tally = {}; const errores = [];\n$input.all().forEach((it, i) => {\n  const sc = it.json.statusCode;\n  const labels = lotes[i]?.json.labels || [];\n  if (sc !== 200) { errores.push({ lote: i + 1, status: sc, error: it.json.body?.error ?? it.json.body ?? null }); return; }\n  (it.json.body?.results || []).forEach((r, j) => {\n    tally[r.status] = (tally[r.status] || 0) + 1;\n    if (r.status === 'error' || r.warning) errores.push({ producto: labels[j] ?? r.model ?? r.id, error: r.error || r.warning });\n  });\n});\nreturn [{ json: {\n  resultado: tally,\n  errores,\n  revisar_a_mano: plan.filter(o => o.review).map(o => ({ producto: o.label, motivo: o.review })),\n  duplicados_en_tu_tienda: head.stats?.duplicados || [],\n  postergados: { total: (head.postergados || []).length, ejemplos: (head.postergados || []).slice(0, 20) },\n  fichas_con_error: head.fichas_con_error || [],\n  plan: head.stats || {},\n} }];\n"
+      },
+      "id": "63c1f596-a42a-4ef6-a4c7-6aed73f1bd04",
+      "name": "Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        100
+      ]
+    }
+  ],
+  "connections": {
+    "Manual": {
+      "main": [
+        [
+          {
+            "node": "Scrapear Lococo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada 6 horas": {
+      "main": [
+        [
+          {
+            "node": "Scrapear Lococo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrapear Lococo": {
+      "main": [
+        [
+          {
+            "node": "Mis productos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mis productos": {
+      "main": [
+        [
+          {
+            "node": "Planificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Planificar": {
+      "main": [
+        [
+          {
+            "node": "Fichas Lococo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fichas Lococo": {
+      "main": [
+        [
+          {
+            "node": "Armar operaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar operaciones": {
+      "main": [
+        [
+          {
+            "node": "Agrupar en lotes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agrupar en lotes": {
+      "main": [
+        [
+          {
+            "node": "Enviar a mi tienda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar a mi tienda": {
+      "main": [
+        [
+          {
+            "node": "Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

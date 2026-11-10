@@ -18,27 +18,7 @@ services:
     build: ./scraper
     restart: unless-stopped
     env_file: .env
-    shm_size: 1gb             # necesario si usás COMPETITOR_STEALTH=true
-
-  ollama:                     # opcional: solo arranca con --profile ollama
-    image: ollama/ollama
-    profiles: ["ollama"]
-    restart: unless-stopped
-    volumes:
-      - ollama_data:/root/.ollama
-    environment:
-      - OLLAMA_NUM_PARALLEL=1        # de a un pedido: en CPU es más estable
-      - OLLAMA_MAX_LOADED_MODELS=1
-      - OLLAMA_KEEP_ALIVE=30m        # no descarga el modelo entre pedidos
-    # Si la Casidy tiene GPU NVIDIA (y nvidia-container-toolkit), descomentá:
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: all
-    #           capabilities: [gpu]
+    shm_size: 1gb             # Chromium necesita memoria compartida
 
 volumes:
   n8n_data:
-  ollama_data:
