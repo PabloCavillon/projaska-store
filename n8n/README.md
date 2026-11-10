@@ -40,6 +40,11 @@ Unos 120 productos de Lococo no traen código. El scraper:
 
 Después de cambiar el `.env`: `docker compose up -d --force-recreate n8n scraper`.
 
+Ver el avance de las fichas en vivo:
+```
+docker compose logs -f scraper
+```
+
 Probar el scraper solo:
 ```
 docker compose exec n8n wget -qO- --post-data='' http://scraper:8000/competitor | head -c 600

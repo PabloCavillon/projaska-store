@@ -9,13 +9,18 @@ Toda la configuración sale del .env:
   COMPETITOR_STEALTH     true = navegador (StealthyFetcher), false = HTTP (Fetcher)
 """
 import hashlib
+import logging
 import os
 import re
+import time
 from urllib.parse import urljoin
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from scrapling.fetchers import Fetcher, StealthyFetcher
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+log = logging.getLogger("scraper")
 
 app = FastAPI(title="scraper-competencia")
 
@@ -113,7 +118,7 @@ LOCOCO_DETAIL_JS = """async (target) => {
     if (r.querySelector('.view.on .crumb')) { r.querySelector('.view.on .crumb a')?.click(); await sleep(300); }
     if (location.hash.startsWith('#ficha')) { location.hash = '#info'; await sleep(200); }
     inp.focus(); inp.value = q; inp.dispatchEvent(new Event('input', { bubbles: true }));
-    for (let k = 0; k < 20 && !card; k++) {
+    for (let k = 0; k < 15 && !card; k++) {
       await sleep(120);
       card = [...r.querySelectorAll('article.card')].find(c => norm(txt(c.querySelector('.code'))) === T);
     }
@@ -122,7 +127,7 @@ LOCOCO_DETAIL_JS = """async (target) => {
   if (!card) return { code: target, error: 'no aparece en el buscador' };
   card.querySelector('.code').click();
   let v = null;
-  for (let k = 0; k < 50; k++) {
+  for (let k = 0; k < 40; k++) {
     await sleep(120); v = r.querySelector('.view.on');
     const h = norm(txt(v?.querySelector('h1')));
     if (h && (h === T || h.startsWith(T) || T.startsWith(h))) break;
@@ -214,22 +219,33 @@ def scrape_lococo(url: str) -> dict:
 
 def scrape_lococo_details(url: str, codes: list[str]) -> dict:
     out: dict = {"items": [], "errors": []}
+    budget = float(env("DETAILS_TIME_BUDGET_S", "600"))  # tope por request; lo que no entra vuelve como error
 
     def action(page):
         page.wait_for_selector("#rd article.card", timeout=30000)
-        for code in codes:
+        t0 = time.monotonic()
+        for i, code in enumerate(codes, 1):
+            if time.monotonic() - t0 > budget:
+                out["errors"] += [{"code": c, "error": "sin tiempo (queda para la próxima corrida)"} for c in codes[i - 1:]]
+                log.warning("fichas: tope de %ss alcanzado en %d/%d", budget, i - 1, len(codes))
+                break
+            t1 = time.monotonic()
             d = {"code": code, "error": "sin intentar"}
-            for _ in range(2):  # un reintento si la ficha no abrió
+            for _ in range(2):  # reintenta solo si encontró el producto pero la ficha no abrió
                 try:
                     d = page.evaluate(LOCOCO_DETAIL_JS, code)
                 except Exception as e:  # noqa: BLE001
                     d = {"code": code, "error": str(e)[:200]}
-                if not d.get("error"):
+                if d.get("error") != "no abrió la ficha":
                     break
             (out["errors"] if d.get("error") else out["items"]).append(d)
+            log.info("ficha %d/%d %.1fs %s %s", i, len(codes), time.monotonic() - t1,
+                     "ERROR " + d["error"] if d.get("error") else "ok", code[:60])
         return page
 
+    log.info("fichas: arrancando %d códigos", len(codes))
     StealthyFetcher.fetch(url, headless=True, network_idle=True, page_action=action)
+    log.info("fichas: listo, %d ok, %d con error", len(out["items"]), len(out["errors"]))
     return {"count": len(out["items"]), **out}
 
 
