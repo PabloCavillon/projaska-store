@@ -63,7 +63,7 @@ export async function createStoreOrder(rawItems: CheckoutItem[]): Promise<Checko
     // --- Validate & price products (precio, caja y oferta salen de la base, no del navegador) ---
     const products = productItems.length
         ? await prisma.product.findMany({
-            where: { id: { in: productItems.map((i) => i.productId!) }, deletedAt: null },
+            where: { id: { in: productItems.map((i) => i.productId!) }, deletedAt: null, showInStore: true },
             select: { id: true, price: true, unitsPerBox: true, offerDiscountPct: true, offerUnit: true },
         })
         : [];

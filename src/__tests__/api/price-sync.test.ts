@@ -41,9 +41,16 @@ describe("auth", () => {
 
 describe("GET /api/price-sync/products", () => {
     it("devuelve solo no borrados y el precio como número", async () => {
-        db.product.findMany.mockResolvedValue([{ id: "p1", sku: "A", model: null, name: "Cam", description: null, price: { toString: () => "12.5", valueOf: () => 12.5 } }]);
+        db.product.findMany.mockResolvedValue([{
+            id: "p1", sku: "A", model: null, name: "Cam", description: null, price: { toString: () => "12.5" },
+            brand: "Dahua", category: "Cámaras", stockStatus: "inmediato", isMadeToOrder: true, showInStore: false,
+            specs: ["IR 20 m"], imageUrl: null, sourceImageUrl: "https://prov/x.jpg", deletedAt: null,
+        }]);
         const res = await GET(req());
-        expect(await res.json()).toEqual([{ id: "p1", sku: "A", model: null, name: "Cam", description: null, price: 12.5 }]);
+        expect(await res.json()).toEqual([{
+            id: "p1", sku: "A", model: null, name: "Cam", description: null, price: 12.5, brand: "Dahua", category: "Cámaras",
+            stockStatus: "inmediato", inStock: true, active: false, specs: ["IR 20 m"], imageUrl: null,
+        }]);
         expect(db.product.findMany.mock.calls[0][0].where).toEqual({ deletedAt: null });
     });
 });

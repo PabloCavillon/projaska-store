@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { QtyInput } from "./qty-input";
+import { stockStatusLabel } from "@/lib/stock-status";
 
 const LOW_STOCK = 3;
 
 /** Stock como dato: blanco normal, ámbar bajo umbral o por encargo, zebra sin stock. */
-export function StockReadout({ stock, isMadeToOrder, className }: { stock: number; isMadeToOrder: boolean; className?: string }) {
+export function StockReadout({ stock, isMadeToOrder, stockStatus, className }: { stock: number; isMadeToOrder: boolean; stockStatus?: string | null; className?: string }) {
     if (stock === 0 && !isMadeToOrder) {
         return (
             <span className={cn("osd inline-flex items-center gap-2 text-osd-dim", className)}>
@@ -14,7 +15,8 @@ export function StockReadout({ stock, isMadeToOrder, className }: { stock: numbe
             </span>
         );
     }
-    if (stock === 0) return <span className={cn("osd text-caution", className)}>Por encargo</span>;
+    // Sin stock propio: manda el depósito del proveedor, si lo sabemos
+    if (stock === 0) return <span className={cn("osd text-caution", className)}>{stockStatusLabel(stockStatus) ?? "Por encargo"}</span>;
     if (stock <= LOW_STOCK) return <span className={cn("osd text-caution", className)}>Últimas {stock}</span>;
     return <span className={cn("osd text-osd-dim", className)}>Stock {stock}</span>;
 }

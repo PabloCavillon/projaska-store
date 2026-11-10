@@ -85,7 +85,7 @@ export function ProductCard({ product }: { product: StoreProduct }) {
                 <Link href={`/products/${product.id}`} className="text-sm leading-snug line-clamp-2 hover:underline underline-offset-4">
                     {product.name}
                 </Link>
-                <StockReadout stock={product.stock} isMadeToOrder={product.isMadeToOrder} className="text-[11px]" />
+                <StockReadout stock={product.stock} isMadeToOrder={product.isMadeToOrder} stockStatus={product.stockStatus} className="text-[11px]" />
             </div>
 
             {hasBox && (

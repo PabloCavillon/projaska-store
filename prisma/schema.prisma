@@ -93,9 +93,12 @@ model Product {
   name          String
   description   String?
   imageUrl      String?
+  sourceImageUrl String?  // URL original del proveedor de la foto; si no cambia, no se vuelve a bajar
   price         Decimal   @db.Decimal(10, 2)
   stock         Int       @default(0)
   category      String
+  stockStatus   String?   // depósito del proveedor: inmediato | deposito_2 | tercer_deposito
+  specs         String[]  @default([]) // ficha técnica en viñetas
   unitsPerBox      Int?
   offerDiscountPct Decimal?  @db.Decimal(5, 2)  // % de descuento, ej: 15 = 15% off
   offerUnit        String?   // "unit" | "box"
@@ -120,7 +123,8 @@ model ProductSyncLog {
   id        String   @id @default(uuid())
   productId String
   product   Product  @relation(fields: [productId], references: [id])
-  field     String   // "price" | "sku" | "description"
+  field     String   // campo de la API que cambió ("price", "sku", "active"...) o "created"
+  op        String?  // "create" | "update" | "deactivate" (null en los registros de /update)
   oldValue  String?
   newValue  String?
   source    String

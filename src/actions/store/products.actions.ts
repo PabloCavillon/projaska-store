@@ -22,6 +22,8 @@ export type StoreProduct = {
     offerPriceArs: number | null;   // derived: calcPriceArs(offerPriceUsd)
     offerUnit: "unit" | "box" | null;
     isMadeToOrder: boolean;
+    stockStatus: string | null;
+    specs: string[];
     /** Cotización usada para los precios en pesos: precio ARS ÷ dollarRate = precio de venta en USD */
     dollarRate: number;
 };
@@ -30,6 +32,7 @@ const productSelect = {
     id: true, sku: true, brand: true, name: true, description: true, imageUrl: true,
     category: true, stock: true, price: true,
     unitsPerBox: true, offerDiscountPct: true, offerUnit: true, isMadeToOrder: true,
+    stockStatus: true, specs: true,
 } as const;
 
 function mapProduct(p: {
@@ -40,6 +43,8 @@ function mapProduct(p: {
     offerDiscountPct: { toNumber(): number } | number | string | null;
     offerUnit: string | null;
     isMadeToOrder: boolean;
+    stockStatus?: string | null;
+    specs?: string[];
 }, priceInfo: PriceInfo): StoreProduct {
     const priceUsd = typeof p.price === "object" ? p.price.toNumber() : Number(p.price);
     const offerDiscountPct = p.offerDiscountPct !== null && p.offerDiscountPct !== undefined
@@ -61,6 +66,8 @@ function mapProduct(p: {
         offerPriceArs: offerPriceUsd !== null ? Math.round(calcPriceArs(offerPriceUsd, priceInfo)) : null,
         offerUnit,
         isMadeToOrder: p.isMadeToOrder,
+        stockStatus: p.stockStatus ?? null,
+        specs: p.specs ?? [],
         dollarRate: priceInfo.dollarRate,
     };
 }

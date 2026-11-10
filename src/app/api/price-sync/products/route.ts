@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isPriceSyncAuthorized } from "@/lib/price-sync-auth";
+import { catalogSelect, toCatalogItem } from "@/lib/catalog-sync";
 
-/** Lista de productos no borrados para que n8n la cruce con la lista del proveedor. `price` es USD. */
+/** Todos los productos no borrados (activos e inactivos) para que n8n los cruce con la lista del proveedor. `price` es costo USD. */
 export async function GET(request: Request) {
     if (!isPriceSyncAuthorized(request)) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -11,10 +12,13 @@ export async function GET(request: Request) {
     try {
         const products = await prisma.product.findMany({
             where: { deletedAt: null },
-            select: { id: true, sku: true, model: true, name: true, description: true, price: true },
+            select: catalogSelect,
             orderBy: { sku: "asc" },
         });
-        return NextResponse.json(products.map((p) => ({ ...p, price: Number(p.price) })));
+        return NextResponse.json(products.map((p) => {
+            const { sourceImageUrl: _s, deleted: _d, ...item } = toCatalogItem(p);
+            return item;
+        }));
     } catch (e) {
         console.error("[price-sync/products]", e);
         return NextResponse.json({ error: "Internal error" }, { status: 500 });

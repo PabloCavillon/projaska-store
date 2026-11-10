@@ -50,9 +50,10 @@ export function ProductDetailClient({ product }: { product: StoreProduct }) {
             </button>
 
             <div className="space-y-3">
+                {product.brand && <p className="osd text-xs text-osd-dim uppercase">{product.brand}</p>}
                 <h1 className="text-3xl sm:text-4xl leading-tight text-balance">{product.name}</h1>
                 <div className="flex items-center gap-4 flex-wrap text-sm">
-                    <StockReadout stock={product.stock} isMadeToOrder={product.isMadeToOrder} />
+                    <StockReadout stock={product.stock} isMadeToOrder={product.isMadeToOrder} stockStatus={product.stockStatus} />
                     {product.offerDiscountPct !== null && product.offerUnit !== null && (
                         <span className="osd bg-osd text-lb px-2 py-0.5 text-xs">
                             −{product.offerDiscountPct}% por {product.offerUnit === "box" ? "caja" : "unidad"}
@@ -65,6 +66,15 @@ export function ProductDetailClient({ product }: { product: StoreProduct }) {
                 <p className="text-base text-osd-dim leading-relaxed whitespace-pre-line max-w-[65ch] border-t border-hud-line pt-6">
                     {product.description}
                 </p>
+            )}
+
+            {product.specs.length > 0 && (
+                <div className="border-t border-hud-line pt-6">
+                    <h2 className="vf-label">Ficha técnica</h2>
+                    <ul className="list-disc pl-5 space-y-1 text-sm text-osd-dim max-w-[65ch]">
+                        {product.specs.map((s, i) => <li key={i}>{s}</li>)}
+                    </ul>
+                </div>
             )}
 
             {hasBox && (

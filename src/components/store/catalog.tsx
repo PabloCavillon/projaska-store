@@ -67,7 +67,7 @@ export function Catalog({ products, kits, initialCat }: { products: StoreProduct
                 id: "results",
                 label: `Resultados: “${q}”`,
                 kits: kits.filter((k) => matches(q, k.name, k.sku, "kit")),
-                products: products.filter((p) => matches(q, p.name, p.sku, p.category)),
+                products: products.filter((p) => matches(q, p.name, p.sku, p.category, p.brand)),
             }];
         }
         // Una categoría que ya no existe (link viejo) muestra todo
