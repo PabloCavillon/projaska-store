@@ -12,6 +12,7 @@ import hashlib
 import logging
 import os
 import re
+import threading
 import time
 from urllib.parse import urljoin
 
@@ -23,6 +24,18 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 log = logging.getLogger("scraper")
 
 app = FastAPI(title="scraper-competencia")
+
+# Un solo navegador a la vez: si n8n (o vos) dispara otro pedido mientras hay uno corriendo, espera su turno
+BROWSER_LOCK = threading.Lock()
+
+
+def one_at_a_time(fn, *args):
+    if not BROWSER_LOCK.acquire(timeout=float(env("BROWSER_WAIT_S", "900"))):
+        raise HTTPException(409, "El scraper está ocupado con otro pedido")
+    try:
+        return fn(*args)
+    finally:
+        BROWSER_LOCK.release()
 
 
 def env(name: str, default: str = "") -> str:
@@ -83,11 +96,13 @@ LOCOCO_EXTRACT_JS = """() => {
     const priceEl = leaves.find(e => /(U\\$S|US\\$|\\$)\\s?\\d/.test(e.textContent));
     const badge = c.querySelector('.badge');
     const img = c.querySelector('.ph img.ok');
-    return { code: txt(c.querySelector('.code')), name: txt(c.querySelector('.nm')),
+    const src = img && !/catalog-fallbacks|category-pending/.test(img.src) ? img.src : null;  // placeholder = sin foto
+    const pid = (c.outerHTML.match(/prod_[A-Za-z0-9_-]+/) || [])[0] || null;
+    return { code: txt(c.querySelector('.code')), name: txt(c.querySelector('.nm')), prod_id: pid,
              price_raw: txt(priceEl), stock: txt(badge),
              stock_level: badge ? ([...badge.classList].find(k => k !== 'badge') || null) : null,
              pack: txt(c.querySelector('.bul')) || null,
-             image_url: img ? img.src : null };
+             image_url: src };
   });
 }"""
 
@@ -127,7 +142,7 @@ LOCOCO_DETAIL_JS = """async (target) => {
   if (!card) return { code: target, error: 'no aparece en el buscador' };
   card.querySelector('.code').click();
   let v = null;
-  for (let k = 0; k < 40; k++) {
+  for (let k = 0; k < 80; k++) {
     await sleep(120); v = r.querySelector('.view.on');
     const h = norm(txt(v?.querySelector('h1')));
     if (h && (h === T || h.startsWith(T) || T.startsWith(h))) break;
@@ -136,8 +151,10 @@ LOCOCO_DETAIL_JS = """async (target) => {
   if (!v) return { code: target, error: 'no abrió la ficha' };
   const crumbs = [...v.querySelectorAll('.crumb a')].map(txt);
   const img = v.querySelector('.fi .panel.big img.ok');
+  const src = img && !/catalog-fallbacks|category-pending/.test(img.src) ? img.src : null;
+  const pid = (location.hash.match(/prod_[A-Za-z0-9_-]+/) || [])[0] || null;
   return { code: target, category: crumbs[1] || null, specs: [...v.querySelectorAll('.panel.desc li')].map(txt).filter(Boolean),
-           image_url: img ? img.src : null };
+           image_url: src, prod_id: pid, source_url: pid ? location.origin + location.pathname + '#ficha/' + pid : null };
 }"""
 
 # Marcas que se buscan dentro del nombre. Se puede pisar con BRANDS=... en el .env (separadas por coma)
@@ -212,6 +229,9 @@ def scrape_lococo(url: str) -> dict:
             "pack": c.get("pack"),
             "image_url": c.get("image_url"),
             "search": c["code"],
+            "prod_id": c.get("prod_id"),
+            # Link directo a la ficha en Lococo (si la tarjeta trae el prod_…; si no, sale de la ficha)
+            "source_url": f"{url.split('#')[0]}#ficha/{c['prod_id']}" if c.get("prod_id") else None,
             "url": url,
         })
     return {"count": len(items), "items": items, "usd_rate": parse_price(data["rate"]), "errors": []}
@@ -260,7 +280,7 @@ def details(body: DetailsIn):
         return {"count": 0, "items": [], "errors": []}
     url = env("COMPETITOR_URLS", "https://importadoralococo.com/lista-de-precios").split(",")[0].strip()
     try:
-        return scrape_lococo_details(url, codes)
+        return one_at_a_time(scrape_lococo_details, url, codes)
     except Exception as e:  # noqa: BLE001
         raise HTTPException(502, f"Fallo el scraping de fichas: {e}")
 
@@ -270,7 +290,7 @@ def competitor():
     if env("COMPETITOR_SOURCE", "generic").lower() == "lococo":
         url = env("COMPETITOR_URLS", "https://importadoralococo.com/lista-de-precios").split(",")[0].strip()
         try:
-            return scrape_lococo(url)
+            return one_at_a_time(scrape_lococo, url)
         except Exception as e:  # noqa: BLE001
             raise HTTPException(502, f"Fallo el scraping de Lococo: {e}")
 

@@ -17,10 +17,15 @@ Ya no usa IA: el modelo alcanza para emparejar.
 1. **Scrapear Lococo**: carga los ~930 productos (modelo, nombre, precio, stock, marca, foto).
 2. **Mis productos**: trae tu catálogo (`GET /api/price-sync/products`).
 3. **Planificar**: modelo exacto (ignora guiones/espacios) → si no, "un modelo contiene al otro" con un solo candidato → si no, producto nuevo. Lo tuyo que no está en Lococo → desactivar.
-4. **Fichas Lococo**: abre la ficha de los nuevos y de los que tienen la ficha incompleta (categoría + características + foto grande). Máximo `DETAILS_MAX_PER_RUN` por corrida.
-5. **Armar operaciones**: calcula qué cambia en cada producto. En `DRY_RUN=true` el flujo termina acá: revisá esta salida.
-6. **Enviar a mi tienda**: `POST /api/price-sync/upsert` de a `BATCH_SIZE`.
-7. **Resumen**: creados / actualizados / desactivados, errores, revisar a mano, duplicados.
+4. **Partir en tandas**: fichas de a `DETAILS_CHUNK` (40). La tanda 1 además lleva lo que no necesita ficha (precio/stock de los ya completos, desactivar).
+5. **Loop por tanda** (*Recorrer tandas*), y en cada vuelta:
+   - **Fichas Lococo**: abre las 40 fichas (categoría + características + foto grande).
+   - **Armar operaciones**: calcula qué cambia en esos productos.
+   - **Enviar a mi tienda**: los guarda en la BD **en el momento** (`POST /api/price-sync/upsert`, de a `BATCH_SIZE`). Con `DRY_RUN=true` no envía.
+   - **Registrar tanda**: anota resultado y errores de esa tanda.
+   Si el scraper se cae en una tanda, esas fichas quedan para la próxima corrida y el loop sigue.
+6. **Resumen**: totales de todas las tandas: creados / actualizados / desactivados, errores, revisar a mano, duplicados.
+7. **Avisar por Telegram**: te manda el reporte (creados, actualizados, qué no se pudo cargar y por qué). Necesita `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID` en el `.env`.
 
 ## Productos sin código en Lococo
 

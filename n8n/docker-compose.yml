@@ -19,6 +19,10 @@ services:
     restart: unless-stopped
     env_file: .env
     shm_size: 1gb             # Chromium necesita memoria compartida
+    init: true                # limpia los procesos zombie de Chromium (sin esto se acumulan miles)
+    pids_limit: 512
+    mem_limit: 4g
+    cpus: 4
 
 volumes:
   n8n_data:

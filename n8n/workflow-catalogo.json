@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "714ff621-ec73-41ab-a05a-e9542b8410a1",
+      "id": "577befde-dcb3-4c36-8997-04b263a89485",
       "name": "Manual",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -23,7 +23,7 @@
           ]
         }
       },
-      "id": "59c31782-227a-4383-bb50-1e3aeb585cd3",
+      "id": "33b03794-58eb-466c-b81d-6454cffd69ee",
       "name": "Cada 6 horas",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -40,12 +40,12 @@
           "timeout": 300000
         }
       },
-      "id": "569e73ca-fd26-4740-9982-99ab6a58a6e6",
+      "id": "45e92787-2ec1-47d5-8a00-6884956d52eb",
       "name": "Scrapear Lococo",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        240,
+        220,
         100
       ]
     },
@@ -63,12 +63,12 @@
         },
         "options": {}
       },
-      "id": "a500f44a-65e6-4b5c-af15-96ebaa174283",
+      "id": "507aa0d2-81ae-4b94-a7d3-96bc0abdc186",
       "name": "Mis productos",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        480,
+        440,
         100
       ],
       "alwaysOutputData": true
@@ -77,25 +77,38 @@
       "parameters": {
         "jsCode": "\n// Decide, para cada producto de Lococo, si hay que CREARLO o ACTUALIZARLO en tu tienda,\n// y qué productos tuyos ya no están en la lista (DESACTIVAR). El emparejamiento es por modelo.\nconst scr = $('Scrapear Lococo').first().json;\nconst raw = $('Mis productos').all().map(i => i.json);\nconst mine = (raw.length === 1 && Array.isArray(raw[0].products) ? raw[0].products : raw).filter(p => p && p.id);\nconst bool = (v, d) => v === undefined || v === '' ? d : String(v).toLowerCase() === 'true';\nconst DEACT = bool($env.DEACTIVATE_MISSING, true);\nconst MIN_SCRAPE = Number($env.MIN_SCRAPE_COUNT || 800);\nconst MAX_DET = Number($env.DETAILS_MAX_PER_RUN || 300);\nconst K = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');\n\nconst items = scr.items || [];\nif (items.length < MIN_SCRAPE) {\n  throw new Error(`Lococo devolvió ${items.length} productos (mínimo esperado ${MIN_SCRAPE}). Freno para no desactivar tu catálogo por un scraping roto.`);\n}\n\nconst byKey = new Map();\nfor (const p of mine) { const k = K(p.model); if (k) { if (!byKey.has(k)) byKey.set(k, []); byKey.get(k).push(p); } }\n\nconst plan = [];\nconst used = new Set();\nconst pending = [];\n// 1) Modelo exacto (sin importar guiones, espacios ni mayúsculas)\nfor (const s of items) {\n  const hits = byKey.get(K(s.code)) || [];\n  if (hits.length) { hits.forEach(p => used.add(p.id)); plan.push({ op: 'update', s, products: hits, match_type: 'exacto' }); }\n  else pending.push(s);\n}\n// 2) Un modelo contiene al otro (ej. HAC-B1A21P dentro de DH-HAC-B1A21P-U-0280B), solo si hay un único candidato libre\nfor (const s of pending) {\n  const k = K(s.code);\n  const cands = k.length >= 6 && s.model_source !== 'generado'\n    ? mine.filter(p => !used.has(p.id) && K(p.model).length >= 6 && (K(p.model).includes(k) || k.includes(K(p.model))))\n    : [];\n  if (cands.length === 1) { used.add(cands[0].id); plan.push({ op: 'update', s, products: cands, match_type: 'contiene' }); }\n  else plan.push({ op: 'create', s, products: [], match_type: 'nuevo' });\n}\n// 3) Productos tuyos que ya no están en Lococo\nconst missing = mine.filter(p => !used.has(p.id) && K(p.model));\nif (DEACT) for (const p of missing) if (p.active !== false) plan.push({ op: 'deactivate', s: null, products: [p], match_type: 'no está en Lococo' });\n\n// Fichas a bajar: primero los nuevos, después los que tienen la ficha incompleta\nconst needs = [];\nfor (const e of plan.filter(e => e.op === 'create')) needs.push(e.s.search);\nfor (const e of plan.filter(e => e.op === 'update'))\n  if (e.products.some(p => !(p.specs && p.specs.length) || !p.category)) needs.push(e.s.search);\nconst need_details = [...new Set(needs)].slice(0, MAX_DET);\n\nreturn [{ json: {\n  plan, need_details,\n  stats: {\n    lococo: items.length, mios: mine.length,\n    crear: plan.filter(e => e.op === 'create').length,\n    actualizar: plan.filter(e => e.op === 'update').length,\n    desactivar: plan.filter(e => e.op === 'deactivate').length,\n    duplicados: plan.filter(e => e.products.length > 1).map(e => ({ modelo: e.s.code, productos: e.products.map(p => p.sku || p.id) })),\n    sin_modelo_en_tu_tienda: mine.filter(p => !K(p.model)).length,\n    fichas_pedidas: need_details.length, fichas_pendientes: Math.max(0, new Set(needs).size - need_details.length),\n  },\n} }];\n"
       },
-      "id": "ee7053d2-66ba-412b-8fc6-e33d4ea411e3",
+      "id": "02e4abfc-6920-456d-ac03-6d950274f6cd",
       "name": "Planificar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        720,
+        660,
         100
       ]
     },
     {
       "parameters": {
-        "jsCode": "\n// Parte las fichas en tandas: cada tanda es un request corto al scraper (si una falla, no se pierde todo)\nconst codes = $input.first().json.need_details || [];\nconst size = Number($env.DETAILS_CHUNK || 40);\nconst out = [];\nfor (let i = 0; i < codes.length; i += size) out.push({ json: { codes: codes.slice(i, i + size), tanda: out.length + 1 } });\nreturn out.length ? out : [{ json: { codes: [], tanda: 0 } }];\n"
+        "jsCode": "\n// Arma las tandas del loop. Cada tanda = hasta DETAILS_CHUNK fichas + los productos que dependen de ellas.\n// La tanda 1 además lleva todo lo que no necesita ficha (precio/stock de los que ya están completos, desactivar).\nconst { plan, need_details } = $input.first().json;\nconst size = Number($env.DETAILS_CHUNK || 40);\nconst tandas = [];\nfor (let i = 0; i < need_details.length; i += size) tandas.push({ codes: need_details.slice(i, i + size), entries: [] });\nif (!tandas.length) tandas.push({ codes: [], entries: [] });\nconst where = new Map();\ntandas.forEach((t, i) => t.codes.forEach(c => where.set(c, i)));\nfor (const e of plan) {\n  const i = e.s ? where.get(e.s.search) : undefined;\n  tandas[i === undefined ? 0 : i].entries.push(e);\n}\nreturn tandas.map((t, i) => ({ json: { tanda: i + 1, de: tandas.length, ...t } }));\n"
       },
-      "id": "3ca29a18-5032-4414-8f35-fae5c040b74d",
-      "name": "Partir fichas",
+      "id": "29c858f7-7b5c-447c-8e81-bd49e042d601",
+      "name": "Partir en tandas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        840,
+        880,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "3bff98dd-86db-4252-b821-2b6e3322ffb7",
+      "name": "Recorrer tandas",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1100,
         100
       ]
     },
@@ -108,12 +121,6 @@
         "jsonBody": "={{ JSON.stringify({ codes: $json.codes }) }}",
         "options": {
           "timeout": 900000,
-          "batching": {
-            "batch": {
-              "batchSize": 1,
-              "batchInterval": 0
-            }
-          },
           "response": {
             "response": {
               "neverError": true
@@ -121,39 +128,76 @@
           }
         }
       },
-      "id": "55a7ffdf-2697-49c0-adba-f4e6c7ce487f",
+      "id": "d22be5c4-4670-47d5-8540-34ee75527893",
       "name": "Fichas Lococo",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        960,
-        100
-      ]
+        1320,
+        200
+      ],
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
-        "jsCode": "\n// Arma lo que se manda a tu tienda. Precio y stock se actualizan siempre;\n// nombre, marca, categoría, ficha y foto solo se completan si están vacíos (salvo OVERWRITE_CONTENT=true).\nconst { plan, stats } = $('Planificar').first().json;\nconst fichas = $('Fichas Lococo').all().map(i => i.json || {});\nconst det = { items: fichas.flatMap(f => f.items || []), errors: fichas.flatMap(f => f.errors || []) };\nconst scr = $('Scrapear Lococo').first().json;\nconst bool = (v, d) => v === undefined || v === '' ? d : String(v).toLowerCase() === 'true';\nconst num = (v, d) => v === undefined || v === '' || isNaN(Number(v)) ? d : Number(v);\n\nconst TARGET = String($env.TARGET_CURRENCY || 'USD').toUpperCase();\nconst MARGIN = num($env.PRICE_MARGIN_PCT, 0);\nconst IVA = num($env.ADD_IVA_PCT, 0);\nconst ROUND = num($env.PRICE_ROUND_TO, 0.01);\nconst MAX_CHANGE = num($env.MAX_CHANGE_PCT, 30);\nconst RATE = num($env.USD_RATE, 0) || scr.usd_rate || 0;\nconst OVERWRITE = bool($env.OVERWRITE_CONTENT, false);\nconst PUBLISH_NEW = bool($env.PUBLISH_NEW, true);\nconst ONLY_WITH_DETAILS = bool($env.CREATE_ONLY_WITH_DETAILS, true);\nconst IN_STOCK = String($env.IN_STOCK_STATUSES || 'inmediato,deposito_2,tercer_deposito').split(',').map(s => s.trim());\nconst TITLE = String($env.NAME_STYLE || 'title').toLowerCase() === 'title';\n\nconst details = new Map((det.items || []).map(d => [d.code, d]));\nconst round2 = n => Math.round(n * 100) / 100;\n\nfunction price(s) {\n  let p = s.price;\n  const cur = String(s.currency || 'USD').toUpperCase();\n  if (cur !== TARGET) {\n    if (!RATE) return null;\n    p = cur === 'USD' ? p * RATE : p / RATE;\n  }\n  p = p * (1 + IVA / 100) * (1 + MARGIN / 100);\n  return ROUND > 1 ? Math.round(p / ROUND) * ROUND : round2(p);\n}\n\nconst ACR = new Set(['IP','PTZ','DVR','NVR','XVR','HD','UTP','FTP','POE','HDMI','VGA','USB','LED','IR','RFID','AHD','TVI','CVI','HDCVI','WDR','ONVIF','SD','PIR','GSM','LTE','4G','UPS','RJ45','CAT','DC','AC','PVC','OEM','2K','4K','DVR/NVR','NFC','SIM','LAN','WAN','SSD','HDD','MP','MM','TB','GB','MB','MBPS','GBPS','MHZ','GHZ','W','V','VA','AH','KVA','M','U','CM','FPS','DB','IP65','IP66','IP67']);\nconst LOW = new Set(['DE','DEL','CON','Y','A','PARA','EN','SIN','O','LA','EL','LOS','LAS','POR','X']);\nfunction nice(name) {\n  if (!TITLE) return name;\n  return name.split(' ').map((w, i) => w.split('-').map(p => {\n    const U = p.toUpperCase();\n    if (!p || /\\d/.test(p) || ACR.has(U) || /^[^A-ZÁÉÍÓÚÑ]+$/i.test(p)) return U;\n    if (i > 0 && LOW.has(U)) return p.toLowerCase();\n    return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();\n  }).join('-')).join(' ').replace(/\\s·\\s/g, ' · ');\n}\nconst descOf = (name, specs) => specs.length ? `${name}.\\n\\nCaracterísticas:\\n${specs.map(x => '- ' + x).join('\\n')}` : name;\nconst empty = v => v === null || v === undefined || v === '' || (Array.isArray(v) && !v.length);\n\nconst out = [];\nconst postergados = [];\nfor (const e of plan) {\n  if (e.op === 'deactivate') {\n    const p = e.products[0];\n    out.push({ json: { op: 'deactivate', match: { id: p.id }, data: { active: false, inStock: false }, label: p.sku || p.model, motivo: e.match_type } });\n    continue;\n  }\n  const s = e.s;\n  const d = details.get(s.search);\n  const specs = d?.specs || [];\n  const category = d?.category || null;\n  const imageUrl = d?.image_url || s.image_url || null;\n  const name = nice(s.raw_name);\n  const newPrice = price(s);\n  const stockStatus = s.stock_status;\n  const inStock = IN_STOCK.includes(stockStatus);\n\n  if (e.op === 'create') {\n    if (newPrice === null) { postergados.push({ modelo: s.code, motivo: 'sin cotización para convertir moneda' }); continue; }\n    if (!d && ONLY_WITH_DETAILS) { postergados.push({ modelo: s.code, motivo: 'ficha pendiente (se crea en la próxima corrida)' }); continue; }\n    out.push({ json: { op: 'create', match: null, label: s.code, motivo: 'nuevo en Lococo', data: {\n      model: s.code, sku: s.code, name, description: descOf(name, specs), brand: s.brand, category,\n      price: newPrice, stockStatus, inStock, active: PUBLISH_NEW, specs, imageUrl,\n    } } });\n    continue;\n  }\n\n  // update: puede haber más de un producto tuyo con el mismo modelo (duplicados) -> se actualizan todos\n  for (const p of e.products) {\n    const data = {};\n    let review = null;\n    if (newPrice !== null && newPrice !== Number(p.price)) {\n      const pct = Number(p.price) > 0 ? Math.abs(newPrice - p.price) / p.price * 100 : 0;\n      if (pct > MAX_CHANGE) review = `precio ${p.price} -> ${newPrice} (${pct.toFixed(0)}%)`;\n      else data.price = newPrice;\n    }\n    if (p.stockStatus !== stockStatus) data.stockStatus = stockStatus;\n    if (p.inStock !== inStock) data.inStock = inStock;\n    if (p.active === false) data.active = true;  // volvió a la lista de Lococo\n    const fill = (k, v) => { if (!empty(v) && (OVERWRITE ? JSON.stringify(p[k]) !== JSON.stringify(v) : empty(p[k]))) data[k] = v; };\n    fill('brand', s.brand);\n    fill('category', category);\n    fill('specs', specs);\n    fill('imageUrl', imageUrl);\n    if (specs.length) fill('description', descOf(OVERWRITE ? name : (p.name || name), specs));\n    if (OVERWRITE) fill('name', name);\n    if (!Object.keys(data).length && !review) continue;  // sin cambios\n    out.push({ json: { op: 'update', match: { id: p.id }, data, label: p.sku || s.code, motivo: e.match_type,\n                       review, duplicado: e.products.length > 1 } });\n  }\n}\n// Un item extra con el resumen del plan (no se manda a la tienda)\nout.push({ json: { op: 'resumen', stats, postergados, fichas_con_error: det.errors || [] } });\nreturn out;\n"
+        "jsCode": "\n// Arma lo que se manda a tu tienda. Precio y stock se actualizan siempre;\n// nombre, marca, categoría, ficha y foto solo se completan si están vacíos (salvo OVERWRITE_CONTENT=true).\n// Solo procesa los productos de la TANDA actual del loop.\nconst { entries: plan, tanda, codes } = $('Recorrer tandas').first().json;\nconst fichas = $('Fichas Lococo').all().map(i => i.json || {});\nconst det = { items: fichas.flatMap(f => f.items || []), errors: fichas.flatMap(f => f.errors || []) };\n// Si el scraper se cayó en esta tanda, sus fichas quedan como error (se reintentan la próxima corrida)\nconst caida = fichas.find(f => f.error || (f.detail && !f.items));\nif (caida && codes.length) det.errors.push(...codes.filter(c => !det.items.some(d => d.code === c) && !det.errors.some(x => x.code === c))\n  .map(c => ({ code: c, error: 'scraper caído en esta tanda: ' + String(caida.error?.message || caida.error || caida.detail).slice(0, 120) })));\nconst scr = $('Scrapear Lococo').first().json;\nconst bool = (v, d) => v === undefined || v === '' ? d : String(v).toLowerCase() === 'true';\nconst num = (v, d) => v === undefined || v === '' || isNaN(Number(v)) ? d : Number(v);\n\nconst TARGET = String($env.TARGET_CURRENCY || 'USD').toUpperCase();\nconst MARGIN = num($env.PRICE_MARGIN_PCT, 0);\nconst IVA = num($env.ADD_IVA_PCT, 0);\nconst ROUND = num($env.PRICE_ROUND_TO, 0.01);\nconst MAX_CHANGE = num($env.MAX_CHANGE_PCT, 30);\nconst RATE = num($env.USD_RATE, 0) || scr.usd_rate || 0;\nconst OVERWRITE = bool($env.OVERWRITE_CONTENT, false);\nconst PUBLISH_NEW = bool($env.PUBLISH_NEW, true);\nconst ONLY_WITH_DETAILS = bool($env.CREATE_ONLY_WITH_DETAILS, true);\nconst IN_STOCK = String($env.IN_STOCK_STATUSES || 'inmediato,deposito_2,tercer_deposito').split(',').map(s => s.trim());\nconst TITLE = String($env.NAME_STYLE || 'title').toLowerCase() === 'title';\nconst SEND_URL = bool($env.SEND_SOURCE_URL, false);  // activalo cuando Projaska tenga el campo sourceUrl\nconst PLACEHOLDER = /catalog-fallbacks|category-pending/;\n\nconst details = new Map((det.items || []).map(d => [d.code, d]));\nconst round2 = n => Math.round(n * 100) / 100;\n\nfunction price(s) {\n  let p = s.price;\n  const cur = String(s.currency || 'USD').toUpperCase();\n  if (cur !== TARGET) {\n    if (!RATE) return null;\n    p = cur === 'USD' ? p * RATE : p / RATE;\n  }\n  p = p * (1 + IVA / 100) * (1 + MARGIN / 100);\n  return ROUND > 1 ? Math.round(p / ROUND) * ROUND : round2(p);\n}\n\nconst ACR = new Set(['IP','PTZ','DVR','NVR','XVR','HD','UTP','FTP','POE','HDMI','VGA','USB','LED','IR','RFID','AHD','TVI','CVI','HDCVI','WDR','ONVIF','SD','PIR','GSM','LTE','4G','UPS','RJ45','CAT','DC','AC','PVC','OEM','2K','4K','DVR/NVR','NFC','SIM','LAN','WAN','SSD','HDD','MP','MM','TB','GB','MB','MBPS','GBPS','MHZ','GHZ','W','V','VA','AH','KVA','M','U','CM','FPS','DB','IP65','IP66','IP67']);\nconst LOW = new Set(['DE','DEL','CON','Y','A','PARA','EN','SIN','O','LA','EL','LOS','LAS','POR','X']);\nfunction nice(name) {\n  if (!TITLE) return name;\n  return name.split(' ').map((w, i) => w.split('-').map(p => {\n    const U = p.toUpperCase();\n    if (!p || /\\d/.test(p) || ACR.has(U) || /^[^A-ZÁÉÍÓÚÑ]+$/i.test(p)) return U;\n    if (i > 0 && LOW.has(U)) return p.toLowerCase();\n    return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();\n  }).join('-')).join(' ').replace(/\\s·\\s/g, ' · ');\n}\n// La ficha técnica va en `specs` (la tienda la muestra aparte); la descripción es solo el nombre.\nconst descOf = name => `${name}.`;\nconst SPECS_EN_DESC = '\\n\\nCaracterísticas:';\nconst empty = v => v === null || v === undefined || v === '' || (Array.isArray(v) && !v.length);\n\nconst out = [];\nconst postergados = [];\nfor (const e of plan) {\n  if (e.op === 'deactivate') {\n    const p = e.products[0];\n    out.push({ json: { op: 'deactivate', match: { id: p.id }, data: { active: false, inStock: false }, label: p.sku || p.model, motivo: e.match_type } });\n    continue;\n  }\n  const s = e.s;\n  const d = details.get(s.search);\n  const specs = d?.specs || [];\n  const category = d?.category || null;\n  const imageUrl = [d?.image_url, s.image_url].find(u => u && !PLACEHOLDER.test(u)) || null;\n  const sourceUrl = d?.source_url || s.source_url || null;\n  const name = nice(s.raw_name);\n  const newPrice = price(s);\n  const stockStatus = s.stock_status;\n  const inStock = IN_STOCK.includes(stockStatus);\n\n  if (e.op === 'create') {\n    if (newPrice === null) { postergados.push({ modelo: s.code, motivo: 'sin cotización para convertir moneda' }); continue; }\n    if (!d && ONLY_WITH_DETAILS) { postergados.push({ modelo: s.code, motivo: 'ficha pendiente (se crea en la próxima corrida)' }); continue; }\n    out.push({ json: { op: 'create', match: null, label: s.code, motivo: 'nuevo en Lococo', data: {\n      model: s.code, sku: s.code, name, description: descOf(name), brand: s.brand, category,\n      price: newPrice, stockStatus, inStock, active: PUBLISH_NEW, specs, imageUrl,\n      ...(SEND_URL && sourceUrl ? { sourceUrl } : {}),\n    } } });\n    continue;\n  }\n\n  // update: puede haber más de un producto tuyo con el mismo modelo (duplicados) -> se actualizan todos\n  for (const p of e.products) {\n    const data = {};\n    let review = null;\n    if (newPrice !== null && newPrice !== Number(p.price)) {\n      const pct = Number(p.price) > 0 ? Math.abs(newPrice - p.price) / p.price * 100 : 0;\n      if (pct > MAX_CHANGE) review = `precio ${p.price} -> ${newPrice} (${pct.toFixed(0)}%)`;\n      else data.price = newPrice;\n    }\n    if (p.stockStatus !== stockStatus) data.stockStatus = stockStatus;\n    if (p.inStock !== inStock) data.inStock = inStock;\n    if (p.active === false) data.active = true;  // volvió a la lista de Lococo\n    const fill = (k, v) => { if (!empty(v) && (OVERWRITE ? JSON.stringify(p[k]) !== JSON.stringify(v) : empty(p[k]))) data[k] = v; };\n    fill('brand', s.brand);\n    fill('category', category);\n    fill('specs', specs);\n    // Si se guardó el placeholder de Lococo (\"sin foto\") como imagen, se reemplaza\n    if (PLACEHOLDER.test(String(p.sourceImageUrl || '') + String(p.imageUrl || ''))) data.imageUrl = imageUrl;\n    else fill('imageUrl', imageUrl);\n    if (SEND_URL) fill('sourceUrl', sourceUrl);\n    // Limpia descripciones viejas que traían la ficha copiada adentro\n    if (typeof p.description === 'string' && p.description.includes(SPECS_EN_DESC)) data.description = p.description.split(SPECS_EN_DESC)[0];\n    else fill('description', descOf(OVERWRITE ? name : (p.name || name)));\n    if (OVERWRITE) fill('name', name);\n    if (!Object.keys(data).length && !review) continue;  // sin cambios\n    out.push({ json: { op: 'update', match: { id: p.id }, data, label: p.sku || s.code, motivo: e.match_type,\n                       review, duplicado: e.products.length > 1 } });\n  }\n}\n// Un item extra con el resumen del plan (no se manda a la tienda)\nout.push({ json: { op: 'resumen', tanda, postergados, fichas_con_error: det.errors || [] } });\nreturn out;\n"
       },
-      "id": "b8afda87-7e6f-4f17-ba2d-2b2ee97249a3",
+      "id": "17fc95d7-f4da-4864-9755-618c6d3f80f0",
       "name": "Armar operaciones",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1200,
-        100
+        1540,
+        200
       ]
     },
     {
       "parameters": {
-        "jsCode": "\n// DRY_RUN=true: no manda nada. Si no, agrupa de a BATCH_SIZE operaciones por request\nif (String($env.DRY_RUN).toLowerCase() !== 'false') return [];\nconst ops = $input.all().map(i => i.json).filter(o => o.op !== 'resumen' && Object.keys(o.data || {}).length);\nconst size = Number($env.BATCH_SIZE || 50);\nconst out = [];\nfor (let i = 0; i < ops.length; i += size) out.push({ json: { items: ops.slice(i, i + size).map(({ op, match, data }) => ({ op, match, data })),\n                                                            labels: ops.slice(i, i + size).map(o => o.label) } });\nreturn out;\n"
+        "jsCode": "\n// Agrupa las operaciones de ESTA tanda de a BATCH_SIZE. Siempre devuelve algo para que el loop siga.\nconst ops = $input.all().map(i => i.json).filter(o => o.op !== 'resumen' && Object.keys(o.data || {}).length);\nconst dry = String($env.DRY_RUN).toLowerCase() !== 'false';\nif (dry || !ops.length) return [{ json: { send: false, motivo: dry ? 'DRY_RUN' : 'sin cambios', ops: ops.length } }];\nconst size = Number($env.BATCH_SIZE || 50);\nconst out = [];\nfor (let i = 0; i < ops.length; i += size) out.push({ json: { send: true,\n  items: ops.slice(i, i + size).map(({ op, match, data }) => ({ op, match, data })),\n  labels: ops.slice(i, i + size).map(o => o.label) } });\nreturn out;\n"
       },
-      "id": "87fa763d-36d8-4ad3-b11c-c2390b87f4b6",
+      "id": "3e4d498d-f6be-412d-8180-fa5748c26f53",
       "name": "Agrupar en lotes",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1440,
-        100
+        1760,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "a86b5b25-3121-4c2c-91a4-96df5a801966",
+              "leftValue": "={{ $json.send }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f741a9d0-f743-4e77-a0e6-1674b95f7fa3",
+      "name": "¿Enviar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        200
       ]
     },
     {
@@ -188,27 +232,81 @@
           }
         }
       },
-      "id": "2438e34a-0b8a-4cf2-8d59-b14350a11d76",
+      "id": "95592183-1b99-4738-9e9a-cb4e96a8bcd6",
       "name": "Enviar a mi tienda",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1680,
-        100
+        2200,
+        120
+      ],
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Resumen de ESTA tanda (vuelve al loop y se junta al final)\nconst t = $('Recorrer tandas').first().json;\nconst ops = $('Armar operaciones').all().map(i => i.json);\nconst head = ops.find(o => o.op === 'resumen') || {};\nconst lotes = $('Agrupar en lotes').all().map(i => i.json);\nconst enviado = $input.first().json.send !== false;\nconst tally = {}; const errores = [];\nif (enviado) $input.all().forEach((it, i) => {\n  const sc = it.json.statusCode;\n  const labels = lotes[i]?.labels || [];\n  if (sc !== 200) { errores.push({ tanda: t.tanda, lote: i + 1, status: sc ?? null, error: it.json.body?.error ?? it.json.body ?? it.json.error ?? null }); return; }\n  (it.json.body?.results || []).forEach((r, j) => {\n    tally[r.status] = (tally[r.status] || 0) + 1;\n    if (r.status === 'error' || r.warning) errores.push({ producto: labels[j] ?? r.model ?? r.id, error: r.error || r.warning });\n  });\n});\nreturn [{ json: {\n  tanda: t.tanda, de: t.de, enviado, motivo: enviado ? null : $input.first().json.motivo,\n  operaciones: ops.filter(o => o.op !== 'resumen').length,\n  resultado: tally, errores,\n  revisar_a_mano: ops.filter(o => o.review).map(o => ({ producto: o.label, motivo: o.review })),\n  postergados: head.postergados || [], fichas_con_error: head.fichas_con_error || [],\n} }];\n"
+      },
+      "id": "57c191d8-4a9c-4832-a860-24609dd55239",
+      "name": "Registrar tanda",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2420,
+        200
       ]
     },
     {
       "parameters": {
-        "jsCode": "\nconst lotes = $('Agrupar en lotes').all();\nconst plan = $('Armar operaciones').all().map(i => i.json);\nconst head = plan.find(o => o.op === 'resumen') || {};\nconst tally = {}; const errores = [];\n$input.all().forEach((it, i) => {\n  const sc = it.json.statusCode;\n  const labels = lotes[i]?.json.labels || [];\n  if (sc !== 200) { errores.push({ lote: i + 1, status: sc, error: it.json.body?.error ?? it.json.body ?? null }); return; }\n  (it.json.body?.results || []).forEach((r, j) => {\n    tally[r.status] = (tally[r.status] || 0) + 1;\n    if (r.status === 'error' || r.warning) errores.push({ producto: labels[j] ?? r.model ?? r.id, error: r.error || r.warning });\n  });\n});\nreturn [{ json: {\n  resultado: tally,\n  errores,\n  revisar_a_mano: plan.filter(o => o.review).map(o => ({ producto: o.label, motivo: o.review })),\n  duplicados_en_tu_tienda: head.stats?.duplicados || [],\n  postergados: { total: (head.postergados || []).length, ejemplos: (head.postergados || []).slice(0, 20) },\n  fichas_con_error: head.fichas_con_error || [],\n  plan: head.stats || {},\n} }];\n"
+        "jsCode": "\n// Junta los resúmenes de todas las tandas\nconst tandas = $input.all().map(i => i.json).filter(t => t.tanda);\nconst plan = $('Planificar').first().json.stats;\nconst tally = {};\ntandas.forEach(t => Object.entries(t.resultado || {}).forEach(([k, v]) => tally[k] = (tally[k] || 0) + v));\nconst all = k => tandas.flatMap(t => t[k] || []);\nreturn [{ json: {\n  tandas: tandas.length,\n  resultado: tally,\n  no_enviadas: tandas.filter(t => !t.enviado).map(t => ({ tanda: t.tanda, motivo: t.motivo, operaciones: t.operaciones })),\n  errores: all('errores'),\n  revisar_a_mano: all('revisar_a_mano'),\n  duplicados_en_tu_tienda: plan.duplicados || [],\n  postergados: { total: all('postergados').length, ejemplos: all('postergados').slice(0, 20) },\n  fichas_con_error: all('fichas_con_error'),\n  plan,\n} }];\n"
       },
-      "id": "c6d88f67-aaa8-41b4-b9a0-0f243dec3902",
+      "id": "4a56d308-89bd-4b58-bbef-091532838a88",
       "name": "Resumen",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1920,
-        100
+        1320,
+        -40
       ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Arma el mensaje de Telegram (texto plano, máx. 4096 caracteres)\nconst r = $input.first().json;\nconst t = r.resultado || {};\nconst p = r.plan || {};\nconst L = [];\nconst lista = (titulo, arr, fmt, max = 15) => {\n  if (!arr.length) return;\n  L.push('', `${titulo} (${arr.length}):`);\n  arr.slice(0, max).forEach(x => L.push('• ' + fmt(x)));\n  if (arr.length > max) L.push(`  …y ${arr.length - max} más`);\n};\nconst dry = String($env.DRY_RUN).toLowerCase() !== 'false';\nconst ahora = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Mendoza', hour12: false });\n\nL.push(`📦 Catálogo Lococo → Projaska${dry ? ' (DRY RUN, no se guardó nada)' : ''}`, ahora, '');\nL.push(`✅ Creados: ${t.created || 0}`);\nL.push(`🔄 Actualizados: ${t.updated || 0}`);\nL.push(`⏸ Desactivados: ${t.deactivated || 0}`);\nif (t.unchanged) L.push(`➖ Sin cambios: ${t.unchanged}`);\nL.push(`Lococo: ${p.lococo ?? '?'} productos · tu tienda: ${p.mios ?? '?'}`);\n\nconst sinCargar = (r.errores || []).length + (r.fichas_con_error || []).length;\nL.push('', sinCargar ? `❌ No se pudieron cargar: ${sinCargar}` : '👌 Sin errores');\nlista('Errores al guardar', r.errores || [], x => `${x.producto ?? ('tanda ' + x.tanda + ' lote ' + x.lote)}: ${String(x.error?.message ?? x.error ?? x.status).slice(0, 80)}`);\nlista('Fichas que fallaron', r.fichas_con_error || [], x => `${String(x.code).slice(0, 50)}: ${String(x.error).slice(0, 60)}`);\nif (r.postergados?.total) L.push('', `⏳ Quedan para la próxima corrida: ${r.postergados.total} (sin ficha todavía)`);\nlista('Revisar a mano (cambio de precio grande)', r.revisar_a_mano || [], x => `${x.producto}: ${x.motivo}`, 10);\nlista('Tandas no enviadas', (r.no_enviadas || []).filter(x => x.motivo !== 'sin cambios'), x => `tanda ${x.tanda}: ${x.motivo}`, 5);\nif ((r.duplicados_en_tu_tienda || []).length) L.push('', `⚠️ Modelos duplicados en tu tienda: ${r.duplicados_en_tu_tienda.length}`);\n\nlet text = L.join('\\n');\nif (text.length > 4000) text = text.slice(0, 3990) + '\\n…(cortado)';\nreturn [{ json: { text } }];\n"
+      },
+      "id": "011ceea4-9286-4d9f-8f82-faf0a0e9acfd",
+      "name": "Armar reporte",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: $json.text, disable_web_page_preview: true }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "5059bada-51f6-4034-81f0-c7fe401dff27",
+      "name": "Avisar por Telegram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        -40
+      ],
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {
@@ -260,15 +358,33 @@
       "main": [
         [
           {
-            "node": "Partir fichas",
+            "node": "Partir en tandas",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Partir fichas": {
+    "Partir en tandas": {
       "main": [
+        [
+          {
+            "node": "Recorrer tandas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recorrer tandas": {
+      "main": [
+        [
+          {
+            "node": "Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Fichas Lococo",
@@ -304,7 +420,25 @@
       "main": [
         [
           {
+            "node": "¿Enviar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Enviar?": {
+      "main": [
+        [
+          {
             "node": "Enviar a mi tienda",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar tanda",
             "type": "main",
             "index": 0
           }
@@ -315,7 +449,40 @@
       "main": [
         [
           {
-            "node": "Resumen",
+            "node": "Registrar tanda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar tanda": {
+      "main": [
+        [
+          {
+            "node": "Recorrer tandas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resumen": {
+      "main": [
+        [
+          {
+            "node": "Armar reporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar reporte": {
+      "main": [
+        [
+          {
+            "node": "Avisar por Telegram",
             "type": "main",
             "index": 0
           }
