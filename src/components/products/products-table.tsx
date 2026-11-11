@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { setProductShowInStore } from "@/actions/products";
 import { cn } from "@/lib/utils";
+import { isLowRes } from "@/lib/product-image-size";
 import { SerializedProduct } from "@/types/product";
 import { SearchInput } from "../ui/search-input";
 
@@ -85,14 +86,35 @@ function CopyModel({ model }: { model: string }) {
     );
 }
 
+/** Ficha del producto en el proveedor, en otra pestaña. Solo en el admin. */
+function SupplierLink({ url }: { url: string }) {
+    return (
+        <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 underline-offset-4 hover:underline rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+        >
+            Ver en proveedor
+            <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+            <span className="sr-only">(abre en otra pestaña)</span>
+        </a>
+    );
+}
+
 export default function ProductsTable({ products: initialProducts }: Props) {
     const router = useRouter();
     const [products, setProducts] = useState<SerializedProduct[]>(initialProducts);
     const [search, setSearch] = useState("");
+    const [lowResOnly, setLowResOnly] = useState(false);
     const [pendingId, setPendingId] = useState<string | null>(null);
     const [toggleError, setToggleError] = useState<string | null>(null);
 
+    const lowResCount = products.filter(p => isLowRes(p.imageWidth, p.imageHeight)).length;
+
     const filtered = products.filter(p => {
+        if (lowResOnly && !isLowRes(p.imageWidth, p.imageHeight)) return false;
         const searchTerm = search.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
         return [p.name, p.sku, p.model ?? "", p.brand ?? "", p.category].some(field => {
@@ -124,6 +146,17 @@ export default function ProductsTable({ products: initialProducts }: Props) {
     return (
         <div className="flex flex-col">
             <SearchInput value={search} onChange={setSearch} placeholder="Buscar productos..." />
+
+            <label className="mx-4 md:mx-6 mb-3 inline-flex w-fit items-center gap-2 text-sm text-zinc-600 cursor-pointer">
+                <input
+                    type="checkbox"
+                    checked={lowResOnly}
+                    onChange={(e) => setLowResOnly(e.target.checked)}
+                    className="h-4 w-4 accent-zinc-900 cursor-pointer"
+                />
+                Fotos de baja calidad ({lowResCount})
+                <span className="text-xs text-zinc-400">menos de 500 px o sin medir</span>
+            </label>
 
             {toggleError && (
                 <div role="alert" className="mx-4 md:mx-6 mb-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -173,6 +206,7 @@ export default function ProductsTable({ products: initialProducts }: Props) {
                                                 {product.name}
                                             </Link>
                                             {product.model && <div className="mt-1"><CopyModel model={product.model} /></div>}
+                                            {product.sourceUrl && <div className="mt-1"><SupplierLink url={product.sourceUrl} /></div>}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-zinc-700">
                                             {product.brand ?? <span className="text-zinc-300" aria-label="Sin marca">—</span>}
@@ -214,6 +248,7 @@ export default function ProductsTable({ products: initialProducts }: Props) {
                                     {product.name}
                                 </Link>
                                 {product.model && <div><CopyModel model={product.model} /></div>}
+                                {product.sourceUrl && <div><SupplierLink url={product.sourceUrl} /></div>}
                                 <p className="text-sm text-zinc-400">{[product.brand, product.category].filter(Boolean).join(" · ")}</p>
                                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                                     <span className="font-bold text-base text-zinc-900">{fmtPrice(product.price)}</span>

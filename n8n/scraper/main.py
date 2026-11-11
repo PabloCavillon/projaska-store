@@ -157,6 +157,29 @@ LOCOCO_DETAIL_JS = """async (target) => {
            image_url: src, prod_id: pid, source_url: pid ? location.origin + location.pathname + '#ficha/' + pid : null };
 }"""
 
+# Abre la ficha directo por su ID (#ficha/prod_…): ~0,1 s por ficha, sin usar el buscador
+LOCOCO_HASH_JS = """async ({ target, pid }) => {
+  const r = document.getElementById('rd')?.shadowRoot; if (!r) return { code: target, error: 'sin shadowRoot' };
+  const txt = el => (el?.textContent || '').replace(/\\s+/g, ' ').trim();
+  const sleep = ms => new Promise(s => setTimeout(s, ms));
+  location.hash = '#info'; await sleep(120);  // sale de la ficha anterior para no leer datos viejos
+  location.hash = '#ficha/' + pid;
+  let v = null;
+  for (let k = 0; k < 50; k++) {
+    await sleep(100); v = r.querySelector('.view.on');
+    if (location.hash.endsWith(pid) && txt(v?.querySelector('h1')) && v.querySelector('.panel.desc, .crumb')) break;
+    v = null;
+  }
+  if (!v) return { code: target, error: 'no abrió la ficha por ID' };
+  await sleep(150);  // deja terminar de pintar la lista de características
+  const crumbs = [...v.querySelectorAll('.crumb a')].map(txt);
+  const img = v.querySelector('.fi .panel.big img.ok');
+  const src = img && !/catalog-fallbacks|category-pending/.test(img.src) ? img.src : null;
+  return { code: target, category: crumbs[1] || null, specs: [...v.querySelectorAll('.panel.desc li')].map(txt).filter(Boolean),
+           image_url: src, prod_id: pid, h1: txt(v.querySelector('h1')),
+           source_url: location.origin + location.pathname + '#ficha/' + pid };
+}"""
+
 # Marcas que se buscan dentro del nombre. Se puede pisar con BRANDS=... en el .env (separadas por coma)
 DEFAULT_BRANDS = ("HIKVISION,DAHUA,EZVIZ,TIANDY,IMOU,CYGNUS,INTELBRAS,PICOO,SUDVISION,MARSHALL,NETIS,RANGER,"
                   "TP-LINK,MERCUSYS,UBIQUITI,TENDA,RUIJIE,REYEE,HILOOK,HIKSEMI,ZKTECO,AJAX,PARADOX,DSC,GARNET,"
@@ -205,7 +228,8 @@ def scrape_lococo(url: str) -> dict:
         data["rate"] = page.evaluate(LOCOCO_RATE_JS)
         return page
 
-    StealthyFetcher.fetch(url, headless=True, network_idle=True, page_action=action)
+    StealthyFetcher.fetch(url, headless=True, network_idle=True, page_action=action,
+                          timeout=int(env("PAGE_TIMEOUT_MS", "90000")))
 
     items = []
     for c in data["cards"]:
@@ -237,7 +261,8 @@ def scrape_lococo(url: str) -> dict:
     return {"count": len(items), "items": items, "usd_rate": parse_price(data["rate"]), "errors": []}
 
 
-def scrape_lococo_details(url: str, codes: list[str]) -> dict:
+def scrape_lococo_details(url: str, codes: list[str], ids: dict | None = None) -> dict:
+    ids = ids or {}
     out: dict = {"items": [], "errors": []}
     budget = float(env("DETAILS_TIME_BUDGET_S", "600"))  # tope por request; lo que no entra vuelve como error
 
@@ -251,7 +276,13 @@ def scrape_lococo_details(url: str, codes: list[str]) -> dict:
                 break
             t1 = time.monotonic()
             d = {"code": code, "error": "sin intentar"}
-            for _ in range(2):  # reintenta solo si encontró el producto pero la ficha no abrió
+            pid = ids.get(code)
+            if pid:  # camino rápido: directo por ID
+                try:
+                    d = page.evaluate(LOCOCO_HASH_JS, {"target": code, "pid": pid})
+                except Exception as e:  # noqa: BLE001
+                    d = {"code": code, "error": str(e)[:200]}
+            for _ in range(2 if d.get("error") else 0):  # si no hay ID o falló: por el buscador  # reintenta solo si encontró el producto pero la ficha no abrió
                 try:
                     d = page.evaluate(LOCOCO_DETAIL_JS, code)
                 except Exception as e:  # noqa: BLE001
@@ -259,18 +290,21 @@ def scrape_lococo_details(url: str, codes: list[str]) -> dict:
                 if d.get("error") != "no abrió la ficha":
                     break
             (out["errors"] if d.get("error") else out["items"]).append(d)
-            log.info("ficha %d/%d %.1fs %s %s", i, len(codes), time.monotonic() - t1,
-                     "ERROR " + d["error"] if d.get("error") else "ok", code[:60])
+            log.info("ficha %d/%d %.1fs %s %s %s", i, len(codes), time.monotonic() - t1,
+                     "ERROR " + d["error"] if d.get("error") else "ok", "(id)" if pid and not d.get("error") and d.get("h1") else "", code[:60])
         return page
 
     log.info("fichas: arrancando %d códigos", len(codes))
-    StealthyFetcher.fetch(url, headless=True, network_idle=True, page_action=action)
+    # Sin imágenes ni estilos: el HTML de Lococo carga en <1 s, pero sus fotos pueden tardar 15 s+ cada una
+    StealthyFetcher.fetch(url, headless=True, network_idle=False, disable_resources=True, page_action=action,
+                          timeout=int(env("PAGE_TIMEOUT_MS", "60000")))
     log.info("fichas: listo, %d ok, %d con error", len(out["items"]), len(out["errors"]))
     return {"count": len(out["items"]), **out}
 
 
 class DetailsIn(BaseModel):
     codes: list[str] = []
+    ids: dict[str, str] = {}  # código -> prod_… (si se conoce, abre la ficha directo)
 
 
 @app.post("/details")
@@ -280,7 +314,7 @@ def details(body: DetailsIn):
         return {"count": 0, "items": [], "errors": []}
     url = env("COMPETITOR_URLS", "https://importadoralococo.com/lista-de-precios").split(",")[0].strip()
     try:
-        return one_at_a_time(scrape_lococo_details, url, codes)
+        return one_at_a_time(scrape_lococo_details, url, codes, body.ids)
     except Exception as e:  # noqa: BLE001
         raise HTTPException(502, f"Fallo el scraping de fichas: {e}")
 

@@ -5,31 +5,25 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { isPriceSyncAuthorized } from "@/lib/price-sync-auth";
 import { normalize } from "@/lib/search";
-import { catalogSelect, modelKey, toCatalogItem, toColumns, type CatalogItem } from "@/lib/catalog-sync";
+import { catalogSelect, modelKey, SUPPLIER, toCatalogItem, toColumns, type CatalogItem } from "@/lib/catalog-sync";
+import { downloadImage, isLowRes, measureImage } from "@/lib/product-image";
 import { upsertBodySchema, upsertItemSchema, type UpsertData, type UpsertItem } from "@/lib/validations/price-sync";
 
 export const maxDuration = 60;
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const IMAGE_BATCH = 8;
 
-type Image = { url: string; source: string } | { error: string };
+type Image = { url: string; source: string; imageWidth: number; imageHeight: number } | { error: string };
 type Result = { index: number; id?: string; model?: string; status: string; changed?: string[]; error?: string; warning?: string };
 
 /** Baja la foto del proveedor y la sube a Vercel Blob (el mismo storage que /api/upload). */
 async function importImage(url: string): Promise<Image> {
     try {
-        const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const type = res.headers.get("content-type") ?? "";
-        if (!type.startsWith("image/")) throw new Error(`no es una imagen (${type || "sin tipo"})`);
-        if (Number(res.headers.get("content-length")) > MAX_IMAGE_BYTES) throw new Error("pesa más de 5 MB");
-        // shortcut: sin content-length se baja entera antes de medirla (el timeout de 10 s la acota); leer por stream si el proveedor manda archivos enormes
-        const body = await res.arrayBuffer();
-        if (body.byteLength > MAX_IMAGE_BYTES) throw new Error("pesa más de 5 MB");
+        const { body, type } = await downloadImage(url);
+        const size = await measureImage(body);
         const name = new URL(url).pathname.split("/").pop() || "foto";
         const blob = await put(`products/${name}`, body, { access: "public", addRandomSuffix: true, contentType: type });
-        return { url: blob.url, source: url };
+        return { url: blob.url, source: url, ...size };
     } catch (e) {
         return { error: e instanceof Error ? e.message : String(e) };
     }
@@ -71,11 +65,14 @@ export async function POST(request: Request) {
     // Catálogo en memoria: cada item ve lo que cambiaron los anteriores del lote
     const byId = new Map<string, CatalogItem>();
     const byModel = new Map<string, CatalogItem>();
+    // Incluye borrados: el índice único (supplier, sourceId) también los cubre
+    const bySource = new Map<string, CatalogItem>();
     const skus = new Set<string>();
     const names = { brand: new Map<string, string>(), category: new Map<string, string>() };
     const track = (p: CatalogItem) => {
         byId.set(p.id, p);
         skus.add(p.sku);
+        if (p.sourceId && p.supplier === SUPPLIER) bySource.set(p.sourceId, p);
         if (p.deleted) return;
         if (p.model && !byModel.has(modelKey(p.model))) byModel.set(modelKey(p.model), p);
         if (p.brand) names.brand.set(normalize(p.brand), p.brand);
@@ -92,7 +89,7 @@ export async function POST(request: Request) {
     };
     const targetOf = (it: UpsertItem) => {
         if (it.op === "create") return byModel.get(modelKey(it.data.model));
-        const p = byId.get(it.match.id);
+        const p = "id" in it.match ? byId.get(it.match.id) : bySource.get(it.match.sourceId);
         return p && !p.deleted ? p : undefined;
     };
 
@@ -117,24 +114,32 @@ export async function POST(request: Request) {
         // Product.price es Decimal(10,2): redondear antes de comparar evita cambios fantasma
         if (data.price !== undefined) data.price = Math.round(data.price * 100) / 100;
 
-        let warning: string | undefined;
-        let sourceImageUrl: string | undefined;
+        const warnings: string[] = [];
+        // Columnas de la foto que no son de la API; imageUrl: null las limpia (sourceImageUrl queda: así no se vuelve a bajar el placeholder)
+        let imageCols: { sourceImageUrl?: string; imageWidth: number | null; imageHeight: number | null } = { imageWidth: null, imageHeight: null };
         if (data.imageUrl) {
             if (!image) delete data.imageUrl; // la misma foto de origen que ya tenemos
             else if ("error" in image) {
-                warning = `no se pudo bajar la foto: ${image.error}`;
+                warnings.push(`no se pudo bajar la foto: ${image.error}`);
                 delete data.imageUrl;
             } else {
-                data.imageUrl = image.url;
-                sourceImageUrl = image.source;
+                const { url, source, ...size } = image;
+                data.imageUrl = url;
+                imageCols = { sourceImageUrl: source, ...size };
+                if (isLowRes(size.imageWidth, size.imageHeight)) warnings.push(`foto de baja resolución (${size.imageWidth}x${size.imageHeight})`);
             }
         }
+        const warning = warnings.join("; ") || undefined;
 
         const target = targetOf(item);
-        if (item.op !== "create" && !target) throw new Error(`No hay un producto con id ${item.match.id}`);
+        if (item.op !== "create" && !target) throw new Error(`No hay un producto con ${JSON.stringify(item.match)}`);
         if (data.model && target) {
             const other = byModel.get(modelKey(data.model));
             if (other && other.id !== target.id) throw new Error(`El modelo "${data.model}" ya lo usa otro producto (id ${other.id})`);
+        }
+        if (data.sourceId) {
+            const other = bySource.get(data.sourceId);
+            if (other && other.id !== target?.id) throw new Error(`El sourceId "${data.sourceId}" ya es del producto ${other.id}`);
         }
 
         if (!target && item.op === "create") {
@@ -148,7 +153,8 @@ export async function POST(request: Request) {
                         sku, model, name, price: data.price!, description: data.description,
                         brand: data.brand, category: data.category ?? "Sin categoría", stockStatus: data.stockStatus,
                         specs: data.specs ?? [], isMadeToOrder: data.inStock ?? true, showInStore: data.active ?? true,
-                        imageUrl: data.imageUrl, sourceImageUrl,
+                        supplier: SUPPLIER, sourceId: data.sourceId, sourceUrl: data.sourceUrl,
+                        imageUrl: data.imageUrl, ...(data.imageUrl && imageCols),
                     },
                     select: catalogSelect,
                 });
@@ -168,7 +174,7 @@ export async function POST(request: Request) {
         await prisma.$transaction(async (tx) => {
             await tx.product.update({
                 where: { id: p.id },
-                data: { ...toColumns(set), ...(changed.includes("imageUrl") && { sourceImageUrl }) },
+                data: { ...toColumns(set), ...(changed.includes("imageUrl") && imageCols) },
             });
             await tx.productSyncLog.createMany({
                 data: changed.map((f) => ({ productId: p.id, field: f, oldValue: str(p[f]), newValue: str(data[f]), op: item.op, source })),
@@ -176,7 +182,8 @@ export async function POST(request: Request) {
         });
         if (set.sku) skus.delete(p.sku);
         if (set.model && p.model) byModel.delete(modelKey(p.model));
-        track(Object.assign(p, set, changed.includes("imageUrl") ? { sourceImageUrl } : {}));
+        if (set.sourceId && p.sourceId) bySource.delete(p.sourceId);
+        track(Object.assign(p, set, changed.includes("imageUrl") ? imageCols : {}));
         return { id: p.id, status: item.op === "deactivate" ? "deactivated" : "updated", changed, ...(warning && { warning }) };
     }
 

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import sharp from "sharp";
 
 const db = vi.hoisted(() => {
     const db = {
@@ -29,7 +30,7 @@ const run = async (...items: unknown[]) => (await (await POST(req({ source: "n8n
 const row = (o: Record<string, unknown> = {}) => ({
     id: "p1", sku: "CAM-1", model: "DH-IPC 1230", name: "Cámara", description: null, price: 17.4, brand: "Dahua",
     category: "Cámaras", stockStatus: "inmediato", isMadeToOrder: true, showInStore: true, specs: [], imageUrl: null,
-    sourceImageUrl: null, deletedAt: null, ...o,
+    sourceImageUrl: null, deletedAt: null, supplier: "lococo", sourceId: null, sourceUrl: null, imageWidth: null, imageHeight: null, ...o,
 });
 const newItem = { model: "DS-2CD", name: "Domo", price: 18, brand: "DAHUA", category: "camaras" };
 
@@ -50,6 +51,9 @@ describe("validación", () => {
         expect(upsertItemSchema.safeParse({ op: "create", data: { ...newItem, specs: ["x".repeat(201)] } }).success).toBe(false);
         expect(upsertItemSchema.safeParse({ op: "update", match: null, data: { price: 1 } }).success).toBe(false);
         expect(upsertItemSchema.safeParse({ op: "update", match: { id: "p1" }, data: { stockStatus: "otro" } }).success).toBe(false);
+        expect(upsertItemSchema.safeParse({ op: "update", match: { sourceId: "prod_1" }, data: { imageUrl: null } }).success).toBe(true);
+        expect(upsertItemSchema.safeParse({ op: "update", match: { id: "p1", sourceId: "x" }, data: {} }).success).toBe(false);
+        expect(upsertItemSchema.safeParse({ op: "create", data: { ...newItem, sourceUrl: "http://prov/x" } }).success).toBe(false);
     });
 
     it("401 sin token y 400 con body inválido o más de 100 items", async () => {
@@ -105,8 +109,36 @@ describe("POST /api/price-sync/upsert", () => {
         expect(results[0].error).toMatch(/nope/);
     });
 
+    it("match por sourceId; create con sourceId existente no duplica", async () => {
+        db.product.findMany.mockResolvedValue([row({ sourceId: "prod_10018" })]);
+        const [a, b] = await run(
+            { op: "update", match: { sourceId: "prod_10018" }, data: { price: 20, sourceUrl: "https://prov/#ficha/prod_10018" } },
+            { op: "create", data: { ...newItem, sourceId: "prod_10018" } },
+        );
+        expect(a).toEqual({ index: 0, id: "p1", status: "updated", changed: ["price", "sourceUrl"] });
+        expect(b).toMatchObject({ status: "error", error: expect.stringMatching(/p1/) });
+        expect(db.product.create).not.toHaveBeenCalled();
+    });
+
+    it("imageUrl: null borra la foto y sus medidas", async () => {
+        db.product.findMany.mockResolvedValue([row({ imageUrl: "https://blob/sin-foto.png", imageWidth: 100, imageHeight: 100 })]);
+        const [r] = await run({ op: "update", match: { id: "p1" }, data: { imageUrl: null } });
+        expect(r).toEqual({ index: 0, id: "p1", status: "updated", changed: ["imageUrl"] });
+        expect(db.product.update.mock.calls[0][0].data).toEqual({ imageUrl: null, imageWidth: null, imageHeight: null });
+    });
+
+    it("foto: guarda las medidas y avisa si es de baja resolución", async () => {
+        const png = await sharp({ create: { width: 320, height: 240, channels: 3, background: "#fff" } }).png().toBuffer();
+        vi.mocked(fetch).mockResolvedValueOnce(new Response(new Uint8Array(png), { headers: { "content-type": "image/png" } }));
+        put.mockResolvedValue({ url: "https://abc.public.blob.vercel-storage.com/products/a.png" });
+        const [r] = await run({ op: "create", data: { ...newItem, imageUrl: "https://prov/a.png" } });
+        expect(r).toMatchObject({ status: "created", warning: "foto de baja resolución (320x240)" });
+        expect(db.product.create.mock.calls[0][0].data).toMatchObject({ imageWidth: 320, imageHeight: 240, supplier: "lococo" });
+    });
+
     it("foto: la sube al storage; si falla crea igual con warning; misma foto de origen no se baja", async () => {
-        const ok = new Response(new Uint8Array([1, 2, 3]), { headers: { "content-type": "image/jpeg" } });
+        const png = await sharp({ create: { width: 800, height: 600, channels: 3, background: "#fff" } }).png().toBuffer();
+        const ok = new Response(new Uint8Array(png), { headers: { "content-type": "image/jpeg" } });
         vi.mocked(fetch).mockResolvedValueOnce(ok).mockResolvedValueOnce(new Response("x", { status: 404 }));
         put.mockResolvedValue({ url: "https://abc.public.blob.vercel-storage.com/products/a.jpg" });
         db.product.findMany.mockResolvedValue([row({ sourceImageUrl: "https://prov/same.jpg" })]);
@@ -119,7 +151,7 @@ describe("POST /api/price-sync/upsert", () => {
         expect(db.product.create.mock.calls[0][0].data).toMatchObject({
             imageUrl: "https://abc.public.blob.vercel-storage.com/products/a.jpg", sourceImageUrl: "https://prov/a.jpg",
         });
-        expect(a.status).toBe("created");
+        expect(a).toEqual({ index: 0, id: "new", model: "DS-2CD", status: "created" });
         expect(b).toMatchObject({ status: "created", warning: expect.stringMatching(/foto.*404/) });
         expect(db.product.create.mock.calls[1][0].data.imageUrl).toBeUndefined();
         expect(c.status).toBe("unchanged");

@@ -64,7 +64,7 @@ export function ProductCard({ product }: { product: StoreProduct }) {
                         alt=""
                         fill
                         sizes="(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw"
-                        className={cn("object-contain p-4", soldOut && "opacity-40 grayscale")}
+                        className={cn("object-scale-down p-4", soldOut && "opacity-40 grayscale")}
                         onError={() => setImgError(true)}
                         unoptimized
                     />
@@ -85,7 +85,7 @@ export function ProductCard({ product }: { product: StoreProduct }) {
                 <Link href={`/products/${product.id}`} className="text-sm leading-snug line-clamp-2 hover:underline underline-offset-4">
                     {product.name}
                 </Link>
-                <StockReadout stock={product.stock} isMadeToOrder={product.isMadeToOrder} stockStatus={product.stockStatus} className="text-[11px]" />
+                <StockReadout stock={product.stock} isMadeToOrder={product.isMadeToOrder} className="text-[11px]" />
             </div>
 
             {hasBox && (
@@ -123,7 +123,7 @@ export function ProductCard({ product }: { product: StoreProduct }) {
                 />
             ) : (
                 <button onClick={handleAdd} className="vf-btn vf-btn-primary w-full py-2.5 text-xs min-h-11 md:min-h-0">
-                    {product.stock === 0 ? "Pedir por encargo" : "Agregar"}
+                    Agregar
                 </button>
             )}
         </article>

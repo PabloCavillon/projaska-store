@@ -16,7 +16,7 @@ Ya no usa IA: el modelo alcanza para emparejar.
 
 1. **Scrapear Lococo**: carga los ~930 productos (modelo, nombre, precio, stock, marca, foto).
 2. **Mis productos**: trae tu catálogo (`GET /api/price-sync/products`).
-3. **Planificar**: modelo exacto (ignora guiones/espacios) → si no, "un modelo contiene al otro" con un solo candidato → si no, producto nuevo. Lo tuyo que no está en Lococo → desactivar.
+3. **Planificar**: primero por **ID de Lococo** (`prod_…` guardado en `sourceId`) → si no, modelo exacto (ignora guiones/espacios) → si no, "un modelo contiene al otro" con un solo candidato → si no, producto nuevo. Lo tuyo que no está en Lococo → desactivar.
 4. **Partir en tandas**: fichas de a `DETAILS_CHUNK` (40). La tanda 1 además lleva lo que no necesita ficha (precio/stock de los ya completos, desactivar).
 5. **Loop por tanda** (*Recorrer tandas*), y en cada vuelta:
    - **Fichas Lococo**: abre las 40 fichas (categoría + características + foto grande).

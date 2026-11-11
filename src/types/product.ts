@@ -6,6 +6,9 @@ export type SerializedProduct = {
 	name: string;
 	description: string | null;
 	imageUrl: string | null;
+	imageWidth: number | null;
+	imageHeight: number | null;
+	sourceUrl: string | null;
 	price: number;
 	stock: number;
 	category: string;

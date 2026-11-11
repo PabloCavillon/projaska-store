@@ -45,11 +45,14 @@ describe("GET /api/price-sync/products", () => {
             id: "p1", sku: "A", model: null, name: "Cam", description: null, price: { toString: () => "12.5" },
             brand: "Dahua", category: "Cámaras", stockStatus: "inmediato", isMadeToOrder: true, showInStore: false,
             specs: ["IR 20 m"], imageUrl: null, sourceImageUrl: "https://prov/x.jpg", deletedAt: null,
+            supplier: "lococo", sourceId: "prod_1", sourceUrl: "https://prov/#ficha/prod_1", imageWidth: 300, imageHeight: 200,
         }]);
         const res = await GET(req());
         expect(await res.json()).toEqual([{
             id: "p1", sku: "A", model: null, name: "Cam", description: null, price: 12.5, brand: "Dahua", category: "Cámaras",
             stockStatus: "inmediato", inStock: true, active: false, specs: ["IR 20 m"], imageUrl: null,
+            sourceImageUrl: "https://prov/x.jpg", imageWidth: 300, imageHeight: 200,
+            supplier: "lococo", sourceId: "prod_1", sourceUrl: "https://prov/#ficha/prod_1",
         }]);
         expect(db.product.findMany.mock.calls[0][0].where).toEqual({ deletedAt: null });
     });

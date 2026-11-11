@@ -16,7 +16,7 @@ export async function GET(request: Request) {
             orderBy: { sku: "asc" },
         });
         return NextResponse.json(products.map((p) => {
-            const { sourceImageUrl: _s, deleted: _d, ...item } = toCatalogItem(p);
+            const { deleted: _d, ...item } = toCatalogItem(p);
             return item;
         }));
     } catch (e) {

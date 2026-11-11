@@ -21,7 +21,7 @@ export function ViewfinderImage({ src, alt, topLeft, topRight, bottomLeft, dim }
                     alt={alt}
                     fill
                     sizes="(min-width: 768px) 45vw, 100vw"
-                    className={dim ? "object-contain p-6 md:p-12 opacity-40 grayscale" : "object-contain p-6 md:p-12"}
+                    className={dim ? "object-scale-down p-6 md:p-12 opacity-40 grayscale" : "object-scale-down p-6 md:p-12"}
                     unoptimized
                     priority
                 />

@@ -53,7 +53,7 @@ export function ProductDetailClient({ product }: { product: StoreProduct }) {
                 {product.brand && <p className="osd text-xs text-osd-dim uppercase">{product.brand}</p>}
                 <h1 className="text-3xl sm:text-4xl leading-tight text-balance">{product.name}</h1>
                 <div className="flex items-center gap-4 flex-wrap text-sm">
-                    <StockReadout stock={product.stock} isMadeToOrder={product.isMadeToOrder} stockStatus={product.stockStatus} />
+                    <StockReadout stock={product.stock} isMadeToOrder={product.isMadeToOrder} />
                     {product.offerDiscountPct !== null && product.offerUnit !== null && (
                         <span className="osd bg-osd text-lb px-2 py-0.5 text-xs">
                             −{product.offerDiscountPct}% por {product.offerUnit === "box" ? "caja" : "unidad"}

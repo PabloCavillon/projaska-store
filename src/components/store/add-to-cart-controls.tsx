@@ -46,7 +46,7 @@ export function AddToCartControls({ item, maxQuantity }: Props) {
 
     return (
         <button onClick={() => addItem(item)} className="vf-btn vf-btn-primary w-full sm:w-auto px-6 sm:px-10 py-4 text-base whitespace-nowrap">
-            {item.isMadeToOrder ? "Pedir por encargo" : "Agregar al carrito"} <ArrowRight size={16} aria-hidden="true" />
+            Agregar al carrito <ArrowRight size={16} aria-hidden="true" />
         </button>
     );
 }

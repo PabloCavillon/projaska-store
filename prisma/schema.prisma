@@ -94,6 +94,11 @@ model Product {
   description   String?
   imageUrl      String?
   sourceImageUrl String?  // URL original del proveedor de la foto; si no cambia, no se vuelve a bajar
+  imageWidth    Int?      // px reales de la foto guardada (para detectar fotos chicas)
+  imageHeight   Int?
+  supplier      String?   @default("lococo") // proveedor del que viene el producto
+  sourceId      String?   // id del producto en el proveedor (prod_10018...)
+  sourceUrl     String?   // ficha en el proveedor (solo se muestra en el admin)
   price         Decimal   @db.Decimal(10, 2)
   stock         Int       @default(0)
   category      String
@@ -116,6 +121,7 @@ model Product {
   syncLogs        ProductSyncLog[]
 
   @@index([model])
+  @@unique([supplier, sourceId])
 }
 
 // Historial de cambios hechos por la sincronización de precios (n8n)

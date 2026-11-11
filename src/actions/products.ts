@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { Product } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { SerializedProduct } from "@/types/product";
+import { measureImageUrl } from "@/lib/product-image";
 import { revalidatePath } from "next/cache";
 
 function serialize(p: Product): SerializedProduct {
@@ -18,6 +19,9 @@ function serialize(p: Product): SerializedProduct {
 		name: p.name,
 		description: p.description,
 		imageUrl: p.imageUrl,
+		imageWidth: p.imageWidth,
+		imageHeight: p.imageHeight,
+		sourceUrl: p.sourceUrl,
 		price: Number(p.price),
 		stock: p.stock,
 		category: p.category,
@@ -76,7 +80,8 @@ export const createProduct = async (data: {
 }) => {
 	await requireRole("ADMIN", "SELLER");
 	data = productSchema.parse(data);
-	await prisma.product.create({ data });
+	const size = data.imageUrl ? await measureImageUrl(data.imageUrl) : {};
+	await prisma.product.create({ data: { ...data, ...size } });
 	revalidatePath("/products");
 };
 
@@ -102,9 +107,12 @@ export const updateProduct = async (
 	id = assertString(id);
 	await requireRole("ADMIN", "SELLER");
 	data = productSchema.parse(data);
+	// Foto nueva: medirla para que salga (o entre) en el filtro "Fotos de baja calidad"
+	const prev = await prisma.product.findUnique({ where: { id }, select: { imageUrl: true } });
+	const size = data.imageUrl && data.imageUrl !== prev?.imageUrl ? await measureImageUrl(data.imageUrl) : {};
 	await prisma.product.update({
 		where: { id },
-		data,
+		data: { ...data, ...size },
 	});
 	revalidatePath("/products");
 };

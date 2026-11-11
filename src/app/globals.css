@@ -327,7 +327,7 @@ body {
 
 	/* Plato de imagen: el sujeto iluminado dentro del visor.
 	   Claro para que las fotos de proveedor con fondo blanco se integren (multiply). */
-	.vf-plate { background-color: #e6e9eb; color: #3f474c; }
+	.vf-plate { background-color: #fff; color: #3f474c; }
 	.vf-plate img { mix-blend-mode: multiply; }
 	.vf-plate .zebra {
 		background-image: repeating-linear-gradient(-45deg, var(--color-lb) 0 6px, transparent 6px 14px);

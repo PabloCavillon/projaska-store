@@ -35,7 +35,10 @@ const upsertData = z.strictObject({
     inStock: z.boolean(),
     active: z.boolean(),
     specs: z.array(z.string().trim().min(1).max(200)).max(40),
-    imageUrl: z.url({ protocol: /^https?$/ }),
+    // null en un update borra la foto (p. ej. un placeholder "sin foto" guardado por error)
+    imageUrl: z.url({ protocol: /^https?$/ }).nullable(),
+    sourceId: key.max(100),
+    sourceUrl: z.url({ protocol: /^https$/ }),
 }).partial();
 
 export const upsertItemSchema = z.discriminatedUnion("op", [
@@ -46,7 +49,7 @@ export const upsertItemSchema = z.discriminatedUnion("op", [
     }),
     z.strictObject({
         op: z.enum(["update", "deactivate"]),
-        match: z.strictObject({ id: key }),
+        match: z.union([z.strictObject({ id: key }), z.strictObject({ sourceId: key })]),
         data: upsertData.default({}),
     }),
 ]);
